@@ -1,0 +1,79 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    # 使用阿里的Druid连接池
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # 填写你数据库的url、登录名、密码和数据库名
+    url: jdbc:mysql://localhost:3306/vueblog?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+    username: root
+    password: root
+    druid:
+      # 连接池的配置信息
+      # 初始化大小，最小，最大
+      initial-size: 5
+      min-idle: 5
+      maxActive: 20
+      # 配置获取连接等待超时的时间
+      maxWait: 60000
+      # 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒
+      timeBetweenEvictionRunsMillis: 60000
+      # 配置一个连接在池中最小生存的时间，单位是毫秒
+      minEvictableIdleTimeMillis: 300000
+      validationQuery: SELECT 1 FROM DUAL
+      testWhileIdle: true
+      testOnBorrow: false
+      testOnReturn: false
+      # 打开PSCache，并且指定每个连接上PSCache的大小
+      poolPreparedStatements: true
+      maxPoolPreparedStatementPerConnectionSize: 20
+      # 配置监控统计拦截的filters，去掉后监控界面sql无法统计，'wall'用于防火墙
+      filters: stat,wall,log4j
+      # 通过connectProperties属性来打开mergeSql功能；慢SQL记录
+      connectionProperties: druid.stat.mergeSql\=true;druid.stat.slowSqlMillis\=5000
+
+  #文件上传相关设置
+  servlet:
+    multipart:
+      max-file-size: 4MB
+      max-request-size: 20MB
+
+  # redis:
+  #   # redis host
+  #   host: 127.0.0.1
+  #   # 端口号
+  #   port: 6379
+  #   # 连接超时时间（毫秒）
+  #   timeout: 5000
+  #   # 连接池中的最大连接数
+  #   poolMaxTotal: 10
+  #   # 连接池中的最大空闲连接
+  #   poolMaxIdle: 10
+  #   # 连接池最大阻塞等待时间（使用负值表示没有限制）需要一个值，提醒开启redis，这个系统是没有做redis到db的持久化的，不开redis会出问题
+  #   poolMaxWait: 5000
+
+  #devtools插件
+  devtools:
+    livereload:
+      enabled: true #是否支持livereload
+      port: 35729
+    restart:
+      enabled: true #是否支持热部署
+
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**Mapper.xml
+
+shiro-redis:
+  enabled: true
+  redis-manager:
+    host: 127.0.0.1:6379
+
+blog:
+  jwt:
+    # 加密秘钥
+    secret: f4e2e52034348f86b67cde581c0f9eb5
+    # token有效时长，7天，单位秒
+    expire: 604800
+    header: token
