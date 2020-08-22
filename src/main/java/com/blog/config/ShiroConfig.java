@@ -14,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import org.apache.shiro.mgt.SecurityManager;
+
 import javax.servlet.Filter;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
