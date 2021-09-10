@@ -1,2 +1,1 @@
-# vue-blog
-参考https://github.com/MarkerHub/vueblog
+# 社区项目
