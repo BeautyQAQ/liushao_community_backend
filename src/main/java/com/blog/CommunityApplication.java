@@ -7,8 +7,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @author SZ-UserBDG7
  */
 @SpringBootApplication
-public class VueBlogApplication {
+public class CommunityApplication {
     public static void main(String[] args) {
-        SpringApplication.run(VueBlogApplication.class,args);
+        SpringApplication.run(CommunityApplication.class,args);
     }
 }
