@@ -7,7 +7,7 @@ spring:
     type: com.alibaba.druid.pool.DruidDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver
     # 填写你数据库的url、登录名、密码和数据库名
-    url: jdbc:mysql://localhost:3306/liushao_community?useUnicode=true&characterEncoding=utf8&autoReconnect=true&serverTimezone=GMT%2B8
+    url: jdbc:mysql://121.196.168.101:3306/liushao_community?useUnicode=true&characterEncoding=utf8&autoReconnect=true&serverTimezone=GMT%2B8
     username: root
     password: root
     druid:
@@ -33,6 +33,19 @@ spring:
       filters: stat,wall,log4j
       # 通过connectProperties属性来打开mergeSql功能；慢SQL记录
       connectionProperties: druid.stat.mergeSql\=true;druid.stat.slowSqlMillis\=5000
+
+  # 在控制台打印SQL
+  jpa:
+    show-sql: true
+
+  cloud:
+    nacos:
+      config:
+        server-addr: 121.196.168.101:8848
+        namespace: community
+        file-extension: yaml
+  application:
+    name: community
 
   #文件上传相关设置
   servlet:

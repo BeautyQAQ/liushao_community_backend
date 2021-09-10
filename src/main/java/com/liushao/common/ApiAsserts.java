@@ -1,4 +1,4 @@
-package com.blog.common;
+package com.liushao.common;
 
 public class ApiAsserts {
     /**

@@ -1,4 +1,4 @@
-package com.blog.utils;
+package com.liushao.utils;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

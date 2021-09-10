@@ -5,9 +5,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.liushao</groupId>
-    <artifactId>community</artifactId>
+    <artifactId>liushao_community_backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>doubao</name>
+    <name>liushao_community_backend</name>
     <description>Demo project for Spring Boot</description>
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -26,7 +26,7 @@
         <emoji-java.version>5.1.1</emoji-java.version>
     </properties>
     <dependencies>
-            <dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
         </dependency>
@@ -39,53 +39,52 @@
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
-
         <!--jjwt-->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt</artifactId>
             <version>${jwt.version}</version>
         </dependency>
-                <!--emoji-java-->
+        <!--emoji-java-->
         <dependency>
             <groupId>com.vdurmont</groupId>
             <artifactId>emoji-java</artifactId>
             <version>${emoji-java.version}</version>
         </dependency>
-                <!-- lettuce pool 缓存连接池-->
+        <!-- lettuce pool 缓存连接池-->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-pool2</artifactId>
         </dependency>
-                <!--HuTool-->
+        <!--HuTool-->
         <dependency>
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-all</artifactId>
             <version>${hutool.version}</version>
         </dependency>
-                <dependency>
+        <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <scope>runtime</scope>
         </dependency>
-                <!--fastjson-->
+        <!--fastjson-->
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
             <version>${fastjson.version}</version>
         </dependency>
-                <!--yaml-->
+        <!--yaml-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
         </dependency>
-                <!--bean validator-->
+        <!--bean validator-->
         <dependency>
             <groupId>org.hibernate.validator</groupId>
             <artifactId>hibernate-validator</artifactId>
         </dependency>
-                <dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
@@ -96,24 +95,22 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-jpa</artifactId>
-		</dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
         <!-- nacos配置中心-->
-		<dependency>
-			<groupId>com.alibaba.cloud</groupId>
-			<artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
             <version>2.2.0.RELEASE</version>
-		</dependency>
-        		<!--knife4j API文档-->
-		<dependency>
-			<groupId>com.github.xiaoymin</groupId>
-			<artifactId>knife4j-micro-spring-boot-starter</artifactId>
-			<version>2.0.6</version>
-		</dependency>
-
+        </dependency>
+        <!--knife4j API文档-->
+        <dependency>
+            <groupId>com.github.xiaoymin</groupId>
+            <artifactId>knife4j-micro-spring-boot-starter</artifactId>
+            <version>2.0.6</version>
+        </dependency>
         <!-- alibaba的druid数据库连接池 -->
         <dependency>
             <groupId>com.alibaba</groupId>
@@ -125,11 +122,6 @@
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
             <version>1.2.17</version>
-        </dependency>
-        <dependency>
-            <groupId>org.crazycake</groupId>
-            <artifactId>shiro-redis-spring-boot-starter</artifactId>
-            <version>3.2.1</version>
         </dependency>
     </dependencies>
 

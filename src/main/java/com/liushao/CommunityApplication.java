@@ -1,4 +1,4 @@
-package com.blog;
+package com.liushao;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
