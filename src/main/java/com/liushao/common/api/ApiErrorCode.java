@@ -1,4 +1,4 @@
-package com.liushao.common;
+package com.liushao.common.api;
 
 public enum ApiErrorCode {
 

@@ -1,4 +1,6 @@
-package com.liushao.common;
+package com.liushao.common.exception;
+
+import com.liushao.common.api.ApiErrorCode;
 
 public class ApiException extends RuntimeException {
     private ApiErrorCode errorCode;

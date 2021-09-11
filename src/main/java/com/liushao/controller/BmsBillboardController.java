@@ -1,6 +1,6 @@
 package com.liushao.controller;
 
-import com.liushao.common.ApiResult;
+import com.liushao.common.api.ApiResult;
 import com.liushao.model.entity.BmsBillboard;
 import com.liushao.service.BmsBillboardService;
 import org.springframework.web.bind.annotation.GetMapping;
