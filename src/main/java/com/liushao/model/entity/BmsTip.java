@@ -1,19 +1,17 @@
 package com.liushao.model.entity;
 
 import io.swagger.annotations.ApiModel;
-import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.Date;
 
 @NoArgsConstructor
-@AllArgsConstructor
 @Entity
-@Table(name="bms_billboard")
+@Table(name="bms_tip")
 @ApiModel(value = "公告板")
-public class BmsBillboard implements Serializable {
+public class BmsTip implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -25,19 +23,19 @@ public class BmsBillboard implements Serializable {
     private Integer id;
 
     /**
-     * 公告牌
+     * 内容
      */
     private String content;
 
     /**
-     * 公告时间
+     * 作者
      */
-    private Date createTime = new Date();
+    private String author;
 
     /**
-     * 1：展示中，0：过期, 默认设置为0过期
+     * 1：使用，0：过期
      */
-    private boolean show = false;
+    private boolean type;
 
     public Integer getId() {
         return id;
@@ -55,19 +53,19 @@ public class BmsBillboard implements Serializable {
         this.content = content;
     }
 
-    public Date getCreateTime() {
-        return createTime;
+    public String getAuthor() {
+        return author;
     }
 
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
+    public void setAuthor(String author) {
+        this.author = author;
     }
 
-    public boolean isShow() {
-        return show;
+    public boolean isType() {
+        return type;
     }
 
-    public void setShow(boolean show) {
-        this.show = show;
+    public void setType(boolean type) {
+        this.type = type;
     }
 }
