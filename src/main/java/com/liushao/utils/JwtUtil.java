@@ -1,63 +1,31 @@
 package com.liushao.utils;
 
-import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
 
 import java.util.Date;
+import java.util.HashMap;
 
 /**
  * jwt工具类
  * @author SZ-UserBDG7
  */
-@Slf4j
-@Data
-@Component
-@ConfigurationProperties(prefix = "blog.jwt")
 public class JwtUtil {
+    public static final long EXPIRATION_TIME = 3600_000_000L; // 1000 hour
+    public static final String SECRET = "ThisIsASecret";//please change to your own encryption secret.
+    public static final String TOKEN_PREFIX = "Bearer ";
+    public static final String HEADER_STRING = "Authorization";
+    public static final String USER_NAME = "userName";
 
-    private String secret;
-    private long expire;
-    private String header;
-
-    /**
-     * 生成jwt token
-     */
-    public String generateToken(long userId) {
-        Date nowDate = new Date();
-        //过期时间
-        Date expireDate = new Date(nowDate.getTime() + expire * 1000);
-
-        return Jwts.builder()
-                .setHeaderParam("typ", "JWT")
-                .setSubject(userId+"")
-                .setIssuedAt(nowDate)
-                .setExpiration(expireDate)
-                .signWith(SignatureAlgorithm.HS512, secret)
+    public static String generateToken(String userId) {
+        HashMap<String, Object> map = new HashMap<>();
+        //you can put any data in the map
+        map.put(USER_NAME, userId);
+        String jwt = Jwts.builder()
+                .setClaims(map)
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                .signWith(SignatureAlgorithm.HS512, SECRET)
                 .compact();
+        return jwt;
     }
-
-    public Claims getClaimByToken(String token) {
-        try {
-            return Jwts.parser()
-                    .setSigningKey(secret)
-                    .parseClaimsJws(token)
-                    .getBody();
-        }catch (Exception e){
-            log.debug("validate is token error ", e);
-            return null;
-        }
-    }
-
-    /**
-     * token是否过期
-     * @return  true：过期
-     */
-    public boolean isTokenExpired(Date expiration) {
-        return expiration.before(new Date());
-    }
-}
+} 
