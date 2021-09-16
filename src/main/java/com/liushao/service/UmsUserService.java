@@ -45,7 +45,7 @@ public class UmsUserService {
             if (encode.equals(umsUser.getPassword())) {
                 throw new Exception("密码错误");
             }
-            JwtUtil.generateToken(umsUser.getUsername());
+            token = JwtUtil.generateToken(umsUser.getUsername());
         } catch (Exception e) {
             log.warn("用户不存在or密码验证失败=======>{}", loginDTO.getUsername());
         }
