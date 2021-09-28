@@ -65,9 +65,23 @@ public class UmsUserController {
         return ApiResult.success(hashMap, "登录成功");
     }
     
+    /**
+     * 获取用户信息
+     * @param userName 用户名
+     * @return UmsUser
+     */
     @GetMapping(value = "/info")
     public ApiResult<UmsUser> getUser(@RequestHeader(value = USER_NAME) String userName) {
         UmsUser user = umsUserService.findUserByUsername(userName);
         return ApiResult.success(user);
+    }
+
+    /**
+     * 注销登录
+     * @return Object
+     */
+    @GetMapping(value = "/logout")
+    public ApiResult<Object> logOut() {
+        return ApiResult.success(null, "注销成功");
     }
 }
