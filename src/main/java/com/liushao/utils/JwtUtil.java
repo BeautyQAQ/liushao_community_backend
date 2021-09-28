@@ -2,14 +2,23 @@ package com.liushao.utils;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import lombok.extern.slf4j.Slf4j;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
 
 /**
  * jwt工具类
  * @author SZ-UserBDG7
  */
+@Slf4j
 public class JwtUtil {
     public static final long EXPIRATION_TIME = 3600_000_000L; // 1000 hour
     public static final String SECRET = "ThisIsASecret";//please change to your own encryption secret.
@@ -26,6 +35,51 @@ public class JwtUtil {
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(SignatureAlgorithm.HS512, SECRET)
                 .compact();
+        //jwt前面一般都会加Bearer
         return jwt;
     }
-} 
+
+    public static HttpServletRequest validateTokenAndAddUserIdToHeader(HttpServletRequest request) {
+        String token = request.getHeader(HEADER_STRING);
+        if (token != null) {
+            // parse the token.
+            try {
+                Map<String, Object> body = Jwts.parser()
+                        .setSigningKey(SECRET)
+                        .parseClaimsJws(token.replace(TOKEN_PREFIX, ""))
+                        .getBody();
+                return new CustomHttpServletRequest(request, body);
+            } catch (Exception e) {
+                log.error(e.getMessage());
+                throw new TokenValidationException(e.getMessage());
+            }
+        } else {
+            throw new TokenValidationException("Missing token");
+        }
+    }
+
+    public static class CustomHttpServletRequest extends HttpServletRequestWrapper {
+        private Map<String, String> claims;
+
+        public CustomHttpServletRequest(HttpServletRequest request, Map<String, ?> claims) {
+            super(request);
+            this.claims = new HashMap<>();
+            claims.forEach((k, v) -> this.claims.put(k, String.valueOf(v)));
+        }
+
+        @Override
+        public Enumeration<String> getHeaders(String name) {
+            if (claims != null && claims.containsKey(name)) {
+                return Collections.enumeration(Arrays.asList(claims.get(name)));
+            }
+            return super.getHeaders(name);
+        }
+
+    }
+
+    static class TokenValidationException extends RuntimeException {
+        public TokenValidationException(String msg) {
+            super(msg);
+        }
+    }
+}
