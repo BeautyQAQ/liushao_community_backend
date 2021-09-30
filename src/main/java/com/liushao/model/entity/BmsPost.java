@@ -10,6 +10,8 @@ import javax.persistence.Table;
 import java.io.Serializable;
 import javax.validation.constraints.NotBlank;
 
+import org.springframework.data.annotation.CreatedDate;
+
 import io.swagger.annotations.ApiModel;
 import lombok.NoArgsConstructor;
 
@@ -42,7 +44,7 @@ public class BmsPost implements Serializable {
     /**
      * 作者ID
      */
-    private String userId;
+    private Integer userId;
 
     /**
      * 评论数
@@ -77,12 +79,14 @@ public class BmsPost implements Serializable {
     /**
      * 创建时间
      */
-    private Date createTime = new Date();
+    @CreatedDate
+    private Date createTime;
 
     /**
      * 修改时间
      */
-    private Date modifyTime = new Date();
+    @CreatedDate
+    private Date modifyTime;
 
     public Integer getId() {
         return id;
@@ -108,11 +112,11 @@ public class BmsPost implements Serializable {
         this.content = content;
     }
 
-    public String getUserId() {
+    public Integer getUserId() {
         return userId;
     }
 
-    public void setUserId(String userId) {
+    public void setUserId(Integer userId) {
         this.userId = userId;
     }
 

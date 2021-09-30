@@ -13,4 +13,11 @@ public interface BmsTopicTagDao extends JpaRepository<BmsTopicTag, Integer>, Jpa
      * @return List<BmsTopicTag>
      */
     List<BmsTopicTag> findByTopicId(Integer topicId);
+
+    /**
+     * 删除这个文章对应的标签id
+     * @param topicId 文章Id
+     * @return int
+     */
+    int deleteByTopicId(Integer topicId);
 }

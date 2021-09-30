@@ -11,6 +11,8 @@ import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import org.springframework.data.annotation.CreatedDate;
+
 import io.swagger.annotations.ApiModel;
 import lombok.NoArgsConstructor;
 
@@ -60,9 +62,11 @@ public class UmsUser implements Serializable {
      */
     private Integer roleId;
 
-    private Date createTime = new Date();
+    @CreatedDate
+    private Date createTime;
 
-    private Date modifyTime = new Date();
+    @CreatedDate
+    private Date modifyTime;
 
     public Integer getId() {
         return id;

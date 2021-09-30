@@ -5,6 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+
+import org.springframework.data.annotation.CreatedDate;
+
 import java.io.Serializable;
 import java.util.Date;
 
@@ -32,7 +35,8 @@ public class BmsBillboard implements Serializable {
     /**
      * 公告时间
      */
-    private Date createTime = new Date();
+    @CreatedDate
+    private Date createTime;
 
     /**
      * 1：展示中，0：过期, 默认设置为0过期
