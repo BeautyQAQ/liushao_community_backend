@@ -5,7 +5,6 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
-import com.liushao.dao.BmsPostDao;
 import com.liushao.dao.BmsTagDao;
 import com.liushao.dao.BmsTopicDao;
 import com.liushao.dao.BmsTopicTagDao;
@@ -38,9 +37,6 @@ public class BmsPostService {
 
     @Resource
     private BmsTagDao bmsTagDao;
-
-    @Resource
-    private BmsPostDao bmsPostDao;
 
     @Resource
     private UmsUserDao umsUserDao;
@@ -83,14 +79,14 @@ public class BmsPostService {
      */
     @Transactional
     public BmsPost add(CreateTopicDTO dto, UmsUser user) {
-        BmsPost post = bmsPostDao.findByTitle(dto.getTitle());
+        BmsPost post = bmsTopicDao.findByTitle(dto.getTitle());
         Assert.isNull(post, "帖子标题已存在, 请修改!");
         // 保存文章
         BmsPost bmsPost = new BmsPost();
         bmsPost.setUserId(user.getId());
         bmsPost.setTitle(dto.getTitle());
         bmsPost.setContent(EmojiParser.parseToAliases(dto.getContent()));
-        bmsPostDao.save(bmsPost);
+        bmsTopicDao.save(bmsPost);
         // 用户积分增加
         user.setScore(user.getScore() + 1);
         umsUserDao.save(user);

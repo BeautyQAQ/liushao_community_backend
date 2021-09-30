@@ -27,7 +27,7 @@ import static com.liushao.utils.JwtUtil.USER_NAME;
 
 @RestController
 @RequestMapping("/post")
-@Api("帖子控制层")
+@Api(tags = "帖子控制层")
 public class BmsPostController {
 
     @Resource
