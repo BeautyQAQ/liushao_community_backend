@@ -26,7 +26,7 @@ public class UmsUser implements Serializable {
      */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String id;
+    private Integer id;
 
     private String username;
 
@@ -64,11 +64,11 @@ public class UmsUser implements Serializable {
 
     private Date modifyTime = new Date();
 
-    public String getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

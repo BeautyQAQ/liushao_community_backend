@@ -70,6 +70,7 @@ public class UmsUserController {
      * @param userName 用户名
      * @return UmsUser
      */
+    @ApiOperation(value = "获取用户信息")
     @GetMapping(value = "/info")
     public ApiResult<UmsUser> getUser(@RequestHeader(value = USER_NAME) String userName) {
         UmsUser user = umsUserService.findUserByUsername(userName);
@@ -80,6 +81,7 @@ public class UmsUserController {
      * 注销登录
      * @return Object
      */
+    @ApiOperation(value = "注销登录")
     @GetMapping(value = "/logout")
     public ApiResult<Object> logOut() {
         return ApiResult.success(null, "注销成功");
