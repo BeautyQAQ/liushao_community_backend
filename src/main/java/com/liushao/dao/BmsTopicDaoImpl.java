@@ -1,6 +1,6 @@
 package com.liushao.dao;
 
-import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Collections;
 import java.util.List;
 
@@ -9,6 +9,8 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
 import com.liushao.model.vo.PostVO;
+import com.liushao.utils.EntityUtils;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -49,9 +51,11 @@ public class BmsTopicDaoImpl {
         Query countQuery = entityManager.createNativeQuery(countSql);
         dataQuery.setFirstResult((int) pageable.getOffset());
         dataQuery.setMaxResults(pageable.getPageSize());
-        BigDecimal count = (BigDecimal) countQuery.getSingleResult();
+        BigInteger count = (BigInteger) countQuery.getSingleResult();
         long total = count.longValue();
-        List<PostVO> content = total > pageable.getOffset() ? dataQuery.getResultList()
+        List<Object[]> resultList = dataQuery.getResultList();
+        List<PostVO> castEntity = EntityUtils.castEntity(resultList, PostVO.class,new PostVO());
+        List<PostVO> content = total > pageable.getOffset() ? castEntity
                 : Collections.<PostVO>emptyList();
         return new PageImpl<>(content, pageable, total);
     }
