@@ -33,7 +33,7 @@ public class BmsTopicDaoImpl {
      */
     public Page<PostVO> findPostList(String tab, Pageable pageable) {
         StringBuilder dataBuilder = new StringBuilder(
-                "select t.id,t.title,t.user_id userId,t.comments,t.view,t.collects,t.top,t.essence,t.create_time,t.modify_time,u.username,u.alias,u.avatar from bms_post t LEFT JOIN ums_user u ON t.user_id = u.id where 1=1");
+                "select t.id,t.title,t.user_id userId,t.comments,t.view,t.collects,t.top,t.essence,t.create_time createTime,t.modify_time modifyTime,u.username,u.alias,u.avatar from bms_post t LEFT JOIN ums_user u ON t.user_id = u.id where 1=1");
         StringBuilder countBuilder = new StringBuilder(
                 "select count(t.id) from bms_post t LEFT JOIN ums_user u ON t.user_id = u.id where 1=1");
         if ("hot".equals(tab)) {
