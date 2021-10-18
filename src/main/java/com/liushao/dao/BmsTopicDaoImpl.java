@@ -38,9 +38,9 @@ public class BmsTopicDaoImpl {
                 "select count(t.id) from bms_post t LEFT JOIN ums_user u ON t.user_id = u.id where 1=1");
         if ("hot".equals(tab)) {
             dataBuilder.append(
-                    " and date(t.create_time) <= date_add(curdate(), interval 1 day) and date(t.create_time) &gt;= date_sub(curdate(), interval 7 day) order by t.view desc, t.create_time desc");
+                    " and date(t.create_time) <= date_add(curdate(), interval 1 day) and date(t.create_time) >= date_sub(curdate(), interval 7 day) order by t.view desc, t.create_time desc");
             countBuilder.append(
-                    " and date(t.create_time) <= date_add(curdate(), interval 1 day) and date(t.create_time) &gt;= date_sub(curdate(), interval 7 day)");
+                    " and date(t.create_time) <= date_add(curdate(), interval 1 day) and date(t.create_time) >= date_sub(curdate(), interval 7 day)");
         } else {
             dataBuilder.append(" order by t.create_time desc");
         }
