@@ -7,21 +7,21 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.List;
 
 @RestController
 @RequestMapping("/promotion")
-@Api(tags = "推广链接")
+@Tag(name = "推广链接")
 public class BmsPromotionController {
 
     @Resource
     private BmsPromotionService bmsPromotionService;
 
-    @ApiOperation(value = "获取全部推广链接")
+    @Operation(summary = "获取全部推广链接")
     @GetMapping("/all")
     public ApiResult<List<BmsPromotion>> list(){
         return ApiResult.success(bmsPromotionService.list());

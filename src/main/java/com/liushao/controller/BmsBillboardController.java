@@ -7,21 +7,21 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.List;
 
 @RestController
 @RequestMapping("/billboard")
-@Api(tags = "公告板")
+@Tag(name = "公告板")
 public class BmsBillboardController {
 
     @Resource
     private BmsBillboardService bmsBillboardService;
 
-    @ApiOperation(value = "展示公告")
+    @Operation(summary = "展示公告")
     @GetMapping("/show")
     public ApiResult<BmsBillboard> getNotices() {
         List<BmsBillboard> list = bmsBillboardService.findAllBillboardIsShow();

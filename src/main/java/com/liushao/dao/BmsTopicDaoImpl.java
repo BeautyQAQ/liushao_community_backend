@@ -1,17 +1,17 @@
 package com.liushao.dao;
 
-import java.math.BigInteger;
+
 import java.util.Collections;
 import java.util.List;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
 
 import com.liushao.model.vo.PostVO;
 
-import org.hibernate.query.internal.NativeQueryImpl;
-import org.hibernate.transform.Transformers;
+
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -48,17 +48,28 @@ public class BmsTopicDaoImpl {
         String countSql = countBuilder.toString();
         log.info("dataSql===={}", dataSql);
         log.info("countSql===={}", countSql);
-        Query dataQuery = entityManager.createNativeQuery(dataSql);
+        var dataQuery = entityManager.unwrap(org.hibernate.Session.class).createNativeQuery(dataSql, Object[].class);
         Query countQuery = entityManager.createNativeQuery(countSql);
         dataQuery.setFirstResult((int) pageable.getOffset());
         dataQuery.setMaxResults(pageable.getPageSize());
-        BigInteger count = (BigInteger) countQuery.getSingleResult();
+        Number count = (Number) countQuery.getSingleResult();
         long total = count.longValue();
-        dataQuery.unwrap(NativeQueryImpl.class).setResultTransformer(Transformers.aliasToBean(PostVO.class));
-        List<PostVO> resultList = dataQuery.getResultList();
+        List<PostVO> resultList = dataQuery.getResultList().stream().map(row -> {
+            PostVO post = new PostVO();
+            post.setId(integer(row[0])); post.setTitle((String) row[1]);
+            post.setUserId(integer(row[2])); post.setComments(integer(row[3]));
+            post.setView(integer(row[4])); post.setCollects(integer(row[5]));
+            post.setTop(bool(row[6])); post.setEssence(bool(row[7]));
+            post.setCreateTime((java.util.Date) row[8]); post.setModifyTime((java.util.Date) row[9]);
+            post.setUsername((String) row[10]); post.setAlias((String) row[11]); post.setAvatar((String) row[12]);
+            post.setTags(List.of());
+            return post;
+        }).toList();
         List<PostVO> content = total > pageable.getOffset() ? resultList
                 : Collections.<PostVO>emptyList();
         return new PageImpl<>(content, pageable, total);
     }
 
+    private static Integer integer(Object value) { return value == null ? null : ((Number) value).intValue(); }
+    private static Boolean bool(Object value) { return value == null ? null : value instanceof Boolean b ? b : ((Number) value).intValue() != 0; }
 }

@@ -7,20 +7,20 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 @RestController
 @RequestMapping("/tip")
-@Api(tags = "每日一句")
+@Tag(name = "每日一句")
 public class BmsTipController {
 
     @Resource
     private BmsTipService bmsTipService;
 
-    @ApiOperation(value = "随机获取每日一句")
+    @Operation(summary = "随机获取每日一句")
     @GetMapping("/today")
     public ApiResult<BmsTip> findRandomTip() {
         return ApiResult.success(bmsTipService.findRandomTip());

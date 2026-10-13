@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:community;MODE=MySQL;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: none
+liushao:
+  jwt:
+    secret: test-only-secret-abcdefghijklmnopqrstuvwxyz-0123456789-ABCDEFGHIJKLMNOPQRSTUVWXYZ

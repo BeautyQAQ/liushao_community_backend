@@ -4,7 +4,7 @@ import com.liushao.dao.BmsTipDao;
 import com.liushao.model.entity.BmsTip;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 @Service
 public class BmsTipService {

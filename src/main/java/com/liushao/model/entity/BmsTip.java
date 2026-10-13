@@ -1,15 +1,15 @@
 package com.liushao.model.entity;
 
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.io.Serializable;
 
 @NoArgsConstructor
 @Entity
 @Table(name="bms_tip")
-@ApiModel(value = "每日一句")
+@Schema(description = "每日一句")
 public class BmsTip implements Serializable {
 
     private static final long serialVersionUID = 1L;

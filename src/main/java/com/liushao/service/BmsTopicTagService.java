@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 import com.liushao.dao.BmsTopicTagDao;
 import com.liushao.model.entity.BmsTag;

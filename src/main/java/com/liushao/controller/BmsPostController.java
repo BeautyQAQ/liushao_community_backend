@@ -1,6 +1,6 @@
 package com.liushao.controller;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 import com.liushao.common.api.ApiResult;
 import com.liushao.model.dto.CreateTopicDTO;
@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,7 +27,7 @@ import static com.liushao.utils.JwtUtil.USER_NAME;
 
 @RestController
 @RequestMapping("/post")
-@Api(tags = "帖子控制层")
+@Tag(name = "帖子控制层")
 public class BmsPostController {
 
     @Resource
@@ -44,7 +44,7 @@ public class BmsPostController {
      * @param pageSize 每页大小
      * @return page
      */
-    @ApiOperation(value = "获取分页帖子列表")
+    @Operation(summary = "获取分页帖子列表")
     @GetMapping(value = "/list")
     public ApiResult<Page<PostVO>> list(@RequestParam(value = "tab", defaultValue = "latest") String tab,
             @RequestParam(value = "pageNo", defaultValue = "1") Integer pageNo,
@@ -59,7 +59,7 @@ public class BmsPostController {
      * @param dto      文章dto
      * @return 文章BmsPost
      */
-    @ApiOperation(value = "创建文章")
+    @Operation(summary = "创建文章")
     @PostMapping(value = "/add")
     public ApiResult<BmsPost> add(@RequestHeader(value = USER_NAME) String userName, @RequestBody CreateTopicDTO dto) {
         UmsUser user = umsUserService.findUserByUsername(userName);

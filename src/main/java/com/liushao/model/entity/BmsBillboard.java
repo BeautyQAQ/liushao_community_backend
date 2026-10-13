@@ -1,10 +1,10 @@
 package com.liushao.model.entity;
 
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 import org.springframework.data.annotation.CreatedDate;
 
@@ -15,7 +15,7 @@ import java.util.Date;
 @AllArgsConstructor
 @Entity
 @Table(name="bms_billboard")
-@ApiModel(value = "公告板")
+@Schema(description = "公告板")
 public class BmsBillboard implements Serializable {
 
     private static final long serialVersionUID = 1L;

@@ -1,17 +1,17 @@
 package com.liushao.model.entity;
 
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.io.Serializable;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "bms_promotion")
-@ApiModel(value = "推广链接")
+@Schema(description = "推广链接")
 public class BmsPromotion implements Serializable {
 
     private static final long serialVersionUID = 1L;

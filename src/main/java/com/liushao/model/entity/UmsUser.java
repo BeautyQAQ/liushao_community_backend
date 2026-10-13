@@ -3,23 +3,23 @@ package com.liushao.model.entity;
 import java.io.Serializable;
 import java.util.Date;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import org.springframework.data.annotation.CreatedDate;
 
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 @Entity
 @Table(name="ums_user")
-@ApiModel(value = "用户信息")
+@Schema(description = "用户信息")
 public class UmsUser implements Serializable {
     private static final long serialVersionUID = -5051120337175047163L;
 

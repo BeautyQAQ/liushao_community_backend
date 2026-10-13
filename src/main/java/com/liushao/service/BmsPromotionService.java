@@ -4,7 +4,7 @@ import com.liushao.dao.BmsPromotionDao;
 import com.liushao.model.entity.BmsPromotion;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.List;
 
 @Service

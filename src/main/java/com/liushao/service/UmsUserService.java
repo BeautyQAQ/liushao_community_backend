@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import lombok.extern.slf4j.Slf4j;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 @Slf4j
 @Service
@@ -21,6 +21,9 @@ public class UmsUserService {
 
     @Resource
     private UmsUserDao umsUserDao;
+
+    @Resource
+    private JwtUtil jwtUtil;
 
     /**
      * 获取用户信息
@@ -37,19 +40,12 @@ public class UmsUserService {
      * @return token
      */
     public String executeLogin(LoginDTO loginDTO){
-        String token = null;
-        try {
-            UmsUser umsUser = findUserByUsername(loginDTO.getUsername());
-            BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
-            String encode = bCryptPasswordEncoder.encode(loginDTO.getPassword());
-            if (encode.equals(umsUser.getPassword())) {
-                throw new Exception("密码错误");
-            }
-            token = JwtUtil.generateToken(umsUser.getUsername());
-        } catch (Exception e) {
-            log.warn("用户不存在or密码验证失败=======>{}", loginDTO.getUsername());
+        UmsUser user = findUserByUsername(loginDTO.getUsername());
+        if (user == null || !Boolean.TRUE.equals(user.getStatus()) ||
+                !new BCryptPasswordEncoder().matches(loginDTO.getPassword(), user.getPassword())) {
+            return null;
         }
-        return token;
+        return jwtUtil.generateToken(user.getUsername());
     }
 
     /**
@@ -70,6 +66,8 @@ public class UmsUserService {
         // 密码加密
         BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
         umsUser.setPassword(bCryptPasswordEncoder.encode(registerDTO.getPass()));
+        umsUser.setCreateTime(new java.util.Date());
+        umsUser.setModifyTime(new java.util.Date());
         umsUserDao.save(umsUser);
         return umsUser;
     }

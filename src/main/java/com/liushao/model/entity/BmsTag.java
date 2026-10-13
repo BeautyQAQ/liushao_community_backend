@@ -2,19 +2,19 @@ package com.liushao.model.entity;
 
 import java.io.Serializable;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 @Entity
 @Table(name = "bms_tag")
-@ApiModel(value = "标签")
+@Schema(description = "标签")
 public class BmsTag implements Serializable {
 
     private static final long serialVersionUID = 3257790983905872243L;

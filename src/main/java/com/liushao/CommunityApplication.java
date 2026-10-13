@@ -21,9 +21,9 @@ public class CommunityApplication extends SpringBootServletInitializer {
     }
 
     @Bean
-    public FilterRegistrationBean jwtFilter() {
-        final FilterRegistrationBean registrationBean = new FilterRegistrationBean();
-        JwtAuthenticationFilter filter = new JwtAuthenticationFilter();
+    public FilterRegistrationBean<JwtAuthenticationFilter> jwtFilter(com.liushao.utils.JwtUtil jwt) {
+        final FilterRegistrationBean<JwtAuthenticationFilter> registrationBean = new FilterRegistrationBean<>();
+        JwtAuthenticationFilter filter = new JwtAuthenticationFilter(jwt);
         registrationBean.setFilter(filter);
         return registrationBean;
     }

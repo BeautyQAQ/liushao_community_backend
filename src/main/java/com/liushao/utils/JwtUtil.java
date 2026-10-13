@@ -1,85 +1,35 @@
 package com.liushao.utils;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import lombok.extern.slf4j.Slf4j;
-
-import java.util.Arrays;
-import java.util.Collections;
+import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
-
-/**
- * jwt工具类
- * @author SZ-UserBDG7
- */
-@Slf4j
+@Component
 public class JwtUtil {
-    public static final long EXPIRATION_TIME = 3600_000_000L; // 1000 hour
-    public static final String SECRET = "ThisIsASecret";//please change to your own encryption secret.
-    public static final String TOKEN_PREFIX = "Bearer ";
-    public static final String HEADER_STRING = "Authorization";
     public static final String USER_NAME = "userName";
-
-    public static String generateToken(String userId) {
-        HashMap<String, Object> map = new HashMap<>();
-        //you can put any data in the map
-        map.put(USER_NAME, userId);
-        String jwt = Jwts.builder()
-                .setClaims(map)
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(SignatureAlgorithm.HS512, SECRET)
-                .compact();
-        //jwt前面一般都会加Bearer
-        return jwt;
-    }
-
-    public static HttpServletRequest validateTokenAndAddUserIdToHeader(HttpServletRequest request) {
-        String token = request.getHeader(HEADER_STRING);
-        if (token != null) {
-            // parse the token.
-            try {
-                Map<String, Object> body = Jwts.parser()
-                        .setSigningKey(SECRET)
-                        .parseClaimsJws(token.replace(TOKEN_PREFIX, ""))
-                        .getBody();
-                return new CustomHttpServletRequest(request, body);
-            } catch (Exception e) {
-                log.error(e.getMessage());
-                throw new TokenValidationException(e.getMessage());
-            }
-        } else {
-            throw new TokenValidationException("Missing token");
+    private final SecretKey key;
+    private final long expire;
+    public JwtUtil(@Value("${liushao.jwt.secret}") String secret,
+                   @Value("${liushao.jwt.expire:86400}") long expire) {
+        if (secret.getBytes(StandardCharsets.UTF_8).length < 64) {
+            throw new IllegalArgumentException("JWT_SECRET must contain at least 64 UTF-8 bytes");
         }
+        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        this.expire = expire;
     }
-
-    public static class CustomHttpServletRequest extends HttpServletRequestWrapper {
-        private Map<String, String> claims;
-
-        public CustomHttpServletRequest(HttpServletRequest request, Map<String, ?> claims) {
-            super(request);
-            this.claims = new HashMap<>();
-            claims.forEach((k, v) -> this.claims.put(k, String.valueOf(v)));
-        }
-
-        @Override
-        public Enumeration<String> getHeaders(String name) {
-            if (claims != null && claims.containsKey(name)) {
-                return Collections.enumeration(Arrays.asList(claims.get(name)));
-            }
-            return super.getHeaders(name);
-        }
-
+    public String generateToken(String username) {
+        Date now = new Date();
+        return Jwts.builder().subject(username).claim(USER_NAME, username).issuedAt(now)
+            .expiration(new Date(now.getTime() + expire * 1000))
+            .signWith(key, Jwts.SIG.HS512).compact();
     }
-
-    static class TokenValidationException extends RuntimeException {
-        public TokenValidationException(String msg) {
-            super(msg);
-        }
+    public Claims getClaimByToken(String token) {
+        return Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
     }
+    public boolean isTokenExpired(Claims claims) { return claims.getExpiration().before(new Date()); }
 }

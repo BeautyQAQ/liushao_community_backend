@@ -17,3 +17,6 @@
 *.ipr
 .vscode
 /logs/
+
+.env
+.env.local
