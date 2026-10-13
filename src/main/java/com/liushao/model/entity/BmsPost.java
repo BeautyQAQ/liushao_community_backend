@@ -1,186 +1,178 @@
 package com.liushao.model.entity;
 
-import java.util.Date;
-
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.io.Serializable;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
-
-import org.springframework.data.annotation.CreatedDate;
-
-import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
+import java.util.Date;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
 
 @NoArgsConstructor
 @Entity
-@Table(name="bms_post")
+@Table(name = "bms_post")
 @Schema(description = "帖子")
 public class BmsPost implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * 主键
-     */
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+  /** 主键 */
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Integer id;
 
-/**
-     * 标题
-     */
-    @NotBlank(message = "标题不可以为空")
-    private String title;
-    /**
-     * markdown
-     */
-    @NotBlank(message = "内容不可以为空")
-    private String content;
+  /** 标题 */
+  @NotBlank(message = "标题不可以为空")
+  @Column(length = 160, nullable = false)
+  private String title;
 
-    /**
-     * 作者ID
-     */
-    private Integer userId;
+  /** markdown */
+  @NotBlank(message = "内容不可以为空")
+  @Column(columnDefinition = "TEXT", nullable = false)
+  private String content;
 
-    /**
-     * 评论数
-     */
-    private Integer comments = 0;
+  /** 作者ID */
+  private Integer userId;
 
-    /**
-     * 收藏数
-     */
-    private Integer collects = 0;
+  /** 评论数 */
+  private Integer comments = 0;
 
-    /**
-     * 浏览数
-     */
-    private Integer view = 0;
+  /** 收藏数 */
+  private Integer collects = 0;
 
-    /**
-     * 专栏ID，默认不分栏
-     */
-    private Integer sectionId = 0;
+  /** 浏览数 */
+  private Integer view = 0;
 
-    /**
-     * 置顶
-     */
-    private Boolean top = false;
+  /** 专栏ID，默认不分栏 */
+  private Integer sectionId = 0;
 
-    /**
-     * 加精
-     */
-    private Boolean essence = false;
+  /** 置顶 */
+  private Boolean top = false;
 
-    /**
-     * 创建时间
-     */
-    @CreatedDate
-    private Date createTime;
+  /** 加精 */
+  private Boolean essence = false;
 
-    /**
-     * 修改时间
-     */
-    @CreatedDate
-    private Date modifyTime;
+  /** 创建时间 */
+  @CreatedDate private Date createTime;
 
-    public Integer getId() {
-        return id;
-    }
+  /** 修改时间 */
+  @CreatedDate private Date modifyTime;
 
-    public void setId(Integer id) {
-        this.id = id;
-    }
+  @Version private Long version;
 
-    public String getTitle() {
-        return title;
-    }
+  public Long getVersion() {
+    return version;
+  }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
+  public void setVersion(Long value) {
+    version = value;
+  }
 
-    public String getContent() {
-        return content;
-    }
+  @jakarta.persistence.PrePersist
+  void timestamps() {
+    if (createTime == null) createTime = new Date();
+    if (modifyTime == null) modifyTime = new Date();
+  }
 
-    public void setContent(String content) {
-        this.content = content;
-    }
+  public Integer getId() {
+    return id;
+  }
 
-    public Integer getUserId() {
-        return userId;
-    }
+  public void setId(Integer id) {
+    this.id = id;
+  }
 
-    public void setUserId(Integer userId) {
-        this.userId = userId;
-    }
+  public String getTitle() {
+    return title;
+  }
 
-    public Integer getComments() {
-        return comments;
-    }
+  public void setTitle(String title) {
+    this.title = title;
+  }
 
-    public void setComments(Integer comments) {
-        this.comments = comments;
-    }
+  public String getContent() {
+    return content;
+  }
 
-    public Integer getCollects() {
-        return collects;
-    }
+  public void setContent(String content) {
+    this.content = content;
+  }
 
-    public void setCollects(Integer collects) {
-        this.collects = collects;
-    }
+  public Integer getUserId() {
+    return userId;
+  }
 
-    public Integer getView() {
-        return view;
-    }
+  public void setUserId(Integer userId) {
+    this.userId = userId;
+  }
 
-    public void setView(Integer view) {
-        this.view = view;
-    }
+  public Integer getComments() {
+    return comments;
+  }
 
-    public Integer getSectionId() {
-        return sectionId;
-    }
+  public void setComments(Integer comments) {
+    this.comments = comments;
+  }
 
-    public void setSectionId(Integer sectionId) {
-        this.sectionId = sectionId;
-    }
+  public Integer getCollects() {
+    return collects;
+  }
 
-    public Boolean getTop() {
-        return top;
-    }
+  public void setCollects(Integer collects) {
+    this.collects = collects;
+  }
 
-    public void setTop(Boolean top) {
-        this.top = top;
-    }
+  public Integer getView() {
+    return view;
+  }
 
-    public Boolean getEssence() {
-        return essence;
-    }
+  public void setView(Integer view) {
+    this.view = view;
+  }
 
-    public void setEssence(Boolean essence) {
-        this.essence = essence;
-    }
+  public Integer getSectionId() {
+    return sectionId;
+  }
 
-    public Date getCreateTime() {
-        return createTime;
-    }
+  public void setSectionId(Integer sectionId) {
+    this.sectionId = sectionId;
+  }
 
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
+  public Boolean getTop() {
+    return top;
+  }
 
-    public Date getModifyTime() {
-        return modifyTime;
-    }
+  public void setTop(Boolean top) {
+    this.top = top;
+  }
 
-    public void setModifyTime(Date modifyTime) {
-        this.modifyTime = modifyTime;
-    }
+  public Boolean getEssence() {
+    return essence;
+  }
+
+  public void setEssence(Boolean essence) {
+    this.essence = essence;
+  }
+
+  public Date getCreateTime() {
+    return createTime;
+  }
+
+  public void setCreateTime(Date createTime) {
+    this.createTime = createTime;
+  }
+
+  public Date getModifyTime() {
+    return modifyTime;
+  }
+
+  public void setModifyTime(Date modifyTime) {
+    this.modifyTime = modifyTime;
+  }
 }

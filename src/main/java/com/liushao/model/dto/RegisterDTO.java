@@ -1,28 +1,22 @@
 package com.liushao.model.dto;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotEmpty;
-
-import org.hibernate.validator.constraints.Length;
-
+import jakarta.validation.constraints.*;
 import lombok.Data;
 
 @Data
 public class RegisterDTO {
+  @NotBlank
+  @Pattern(regexp = "[a-zA-Z0-9_]{2,32}", message = "账号为 2 至 32 位字母、数字或下划线")
+  private String name;
 
-    @NotEmpty(message = "请输入账号")
-    @Length(min = 2, max = 15, message = "长度在2-15")
-    private String name;
+  @NotBlank
+  @Size(min = 8, max = 72, message = "密码至少 8 个字符，最多 72 字节")
+  private String pass;
 
-    @NotEmpty(message = "请输入密码")
-    @Length(min = 6, max = 20, message = "长度在6-20")
-    private String pass;
+  @NotBlank private String checkPass;
 
-    @NotEmpty(message = "请再次输入密码")
-    @Length(min = 6, max = 20, message = "长度在6-20")
-    private String checkPass;
-
-    @NotEmpty(message = "请输入电子邮箱")
-    @Email(message = "邮箱格式不正确")
-    private String email;
+  @NotBlank
+  @Email
+  @Size(max = 128)
+  private String email;
 }

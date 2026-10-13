@@ -1,7 +1,6 @@
 package com.liushao;
 
 import com.liushao.config.JwtAuthenticationFilter;
-
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -15,19 +14,24 @@ import org.springframework.context.annotation.Bean;
 @SpringBootApplication
 public class CommunityApplication extends SpringBootServletInitializer {
 
-    @Override
-    protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
-        return builder.sources(CommunityApplication.class);
-    }
+  @Override
+  protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
+    return builder.sources(CommunityApplication.class);
+  }
 
-    @Bean
-    public FilterRegistrationBean<JwtAuthenticationFilter> jwtFilter(com.liushao.utils.JwtUtil jwt) {
-        final FilterRegistrationBean<JwtAuthenticationFilter> registrationBean = new FilterRegistrationBean<>();
-        JwtAuthenticationFilter filter = new JwtAuthenticationFilter(jwt);
-        registrationBean.setFilter(filter);
-        return registrationBean;
-    }
-    public static void main(String[] args) {
-        SpringApplication.run(CommunityApplication.class,args);
-    }
+  @Bean
+  public FilterRegistrationBean<JwtAuthenticationFilter> jwtFilter(
+      com.liushao.utils.JwtUtil jwt,
+      com.liushao.dao.UmsUserDao users,
+      com.liushao.security.CommunitySessions sessions) {
+    final FilterRegistrationBean<JwtAuthenticationFilter> registrationBean =
+        new FilterRegistrationBean<>();
+    JwtAuthenticationFilter filter = new JwtAuthenticationFilter(jwt, users, sessions);
+    registrationBean.setFilter(filter);
+    return registrationBean;
+  }
+
+  public static void main(String[] args) {
+    SpringApplication.run(CommunityApplication.class, args);
+  }
 }

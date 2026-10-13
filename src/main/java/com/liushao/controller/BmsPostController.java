@@ -1,70 +1,58 @@
 package com.liushao.controller;
 
-import jakarta.annotation.Resource;
-
 import com.liushao.common.api.ApiResult;
 import com.liushao.model.dto.CreateTopicDTO;
-import com.liushao.model.entity.BmsPost;
-import com.liushao.model.entity.UmsUser;
-import com.liushao.model.vo.PostVO;
-import com.liushao.service.BmsPostService;
-import com.liushao.service.UmsUserService;
-
-import org.springframework.data.domain.Page;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.Operation;
-
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-
-import static com.liushao.utils.JwtUtil.USER_NAME;
+import com.liushao.model.vo.*;
+import com.liushao.service.*;
+import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/post")
-@Tag(name = "帖子控制层")
 public class BmsPostController {
+  private final BmsPostService posts;
+  private final UmsUserService users;
 
-    @Resource
-    private BmsPostService bmsPostService;
+  public BmsPostController(BmsPostService posts, UmsUserService users) {
+    this.posts = posts;
+    this.users = users;
+  }
 
-    @Resource
-    private UmsUserService umsUserService;
+  @GetMapping("/list")
+  public ApiResult<PageResult<PostVO>> list(
+      @RequestParam(defaultValue = "latest") String tab,
+      @RequestParam(defaultValue = "1") int pageNo,
+      @RequestParam(defaultValue = "10") int size,
+      @RequestParam(defaultValue = "") String query,
+      @RequestParam(defaultValue = "") String tag,
+      @RequestParam(defaultValue = "") String author) {
+    return ApiResult.success(PageResult.from(posts.getList(tab, pageNo, size, query, tag, author)));
+  }
 
-    /**
-     * 分页查询帖子列表
-     * 
-     * @param tab      热门/时间
-     * @param pageNo   页码
-     * @param pageSize 每页大小
-     * @return page
-     */
-    @Operation(summary = "获取分页帖子列表")
-    @GetMapping(value = "/list")
-    public ApiResult<Page<PostVO>> list(@RequestParam(value = "tab", defaultValue = "latest") String tab,
-            @RequestParam(value = "pageNo", defaultValue = "1") Integer pageNo,
-            @RequestParam(value = "size", defaultValue = "10") Integer pageSize) {
-        return ApiResult.success(bmsPostService.getList(tab, pageNo, pageSize));
-    }
+  @GetMapping("/{id}")
+  public ApiResult<PostDetail> detail(@PathVariable int id) {
+    return ApiResult.success(posts.detail(id));
+  }
 
-    /**
-     * 创建文章
-     * 
-     * @param userName 用户名
-     * @param dto      文章dto
-     * @return 文章BmsPost
-     */
-    @Operation(summary = "创建文章")
-    @PostMapping(value = "/add")
-    public ApiResult<BmsPost> add(@RequestHeader(value = USER_NAME) String userName, @RequestBody CreateTopicDTO dto) {
-        UmsUser user = umsUserService.findUserByUsername(userName);
-        BmsPost post = bmsPostService.add(dto, user);
-        return ApiResult.success(post);
-    }
+  @PostMapping("/add")
+  public ApiResult<PostDetail> add(
+      @RequestAttribute("authenticatedUsername") String username,
+      @Valid @RequestBody CreateTopicDTO input) {
+    return ApiResult.success(posts.add(input, users.requireUser(username)));
+  }
 
+  @PutMapping("/{id}")
+  public ApiResult<PostDetail> update(
+      @PathVariable int id,
+      @RequestAttribute("authenticatedUsername") String username,
+      @Valid @RequestBody CreateTopicDTO input) {
+    return ApiResult.success(posts.update(id, input, users.requireUser(username)));
+  }
+
+  @DeleteMapping("/{id}")
+  public ApiResult<Void> delete(
+      @PathVariable int id, @RequestAttribute("authenticatedUsername") String username) {
+    posts.delete(id, users.requireUser(username));
+    return ApiResult.success();
+  }
 }

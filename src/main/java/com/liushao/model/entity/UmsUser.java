@@ -1,191 +1,199 @@
 package com.liushao.model.entity;
 
-import java.io.Serializable;
-import java.util.Date;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import org.springframework.data.annotation.CreatedDate;
-
-import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
+import java.util.Date;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
 
 @NoArgsConstructor
 @Entity
-@Table(name="ums_user")
+@Table(name = "ums_user")
 @Schema(description = "用户信息")
 public class UmsUser implements Serializable {
-    private static final long serialVersionUID = -5051120337175047163L;
+  private static final long serialVersionUID = -5051120337175047163L;
 
-    /**
-     * 主键
-     */
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+  /** 主键 */
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Integer id;
 
-    private String username;
+  @Column(length = 32, nullable = false, unique = true)
+  private String username;
 
-    private String alias;
+  @Column(length = 64, nullable = false)
+  private String alias;
 
-    @JsonIgnore()
-    private String password;
+  @JsonIgnore()
+  @Column(length = 100, nullable = false)
+  private String password;
 
-    private String avatar = "https://s3.ax1x.com/2020/12/01/DfHNo4.jpg";
+  private String avatar = "";
 
-    private String email;
+  @Column(length = 128, nullable = false, unique = true)
+  private String email;
 
-    private String mobile;
+  @Column(length = 32)
+  private String mobile;
 
-    private String bio = "自由职业者";
+  private String bio = "";
 
-    private Integer score = 0;
+  private Integer score = 0;
 
-    @JsonIgnore
-    private String token;
+  @JsonIgnore private String token;
 
-    private Boolean active = true;
+  private Boolean active = false;
 
-    /**
-     * 状态。1:使用，0:已停用
-     */
-    private Boolean status = true;
+  /** 状态。1:使用，0:已停用 */
+  private Boolean status = true;
 
-    /**
-     * 用户角色
-     */
-    private Integer roleId;
+  /** 用户角色 */
+  private Integer roleId;
 
-    @CreatedDate
-    private Date createTime;
+  @CreatedDate private Date createTime;
 
-    @CreatedDate
-    private Date modifyTime;
+  @CreatedDate private Date modifyTime;
 
-    public Integer getId() {
-        return id;
-    }
+  @JsonIgnore private Long authVersion = 0L;
 
-    public void setId(Integer id) {
-        this.id = id;
-    }
+  public Long getAuthVersion() {
+    return authVersion;
+  }
 
-    public String getUsername() {
-        return username;
-    }
+  public void setAuthVersion(Long value) {
+    authVersion = value;
+  }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
+  @jakarta.persistence.PrePersist
+  void timestamps() {
+    if (createTime == null) createTime = new Date();
+    if (modifyTime == null) modifyTime = new Date();
+  }
 
-    public String getAlias() {
-        return alias;
-    }
+  public Integer getId() {
+    return id;
+  }
 
-    public void setAlias(String alias) {
-        this.alias = alias;
-    }
+  public void setId(Integer id) {
+    this.id = id;
+  }
 
-    public String getPassword() {
-        return password;
-    }
+  public String getUsername() {
+    return username;
+  }
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
+  public void setUsername(String username) {
+    this.username = username;
+  }
 
-    public String getAvatar() {
-        return avatar;
-    }
+  public String getAlias() {
+    return alias;
+  }
 
-    public void setAvatar(String avatar) {
-        this.avatar = avatar;
-    }
+  public void setAlias(String alias) {
+    this.alias = alias;
+  }
 
-    public String getEmail() {
-        return email;
-    }
+  public String getPassword() {
+    return password;
+  }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
+  public void setPassword(String password) {
+    this.password = password;
+  }
 
-    public String getMobile() {
-        return mobile;
-    }
+  public String getAvatar() {
+    return avatar;
+  }
 
-    public void setMobile(String mobile) {
-        this.mobile = mobile;
-    }
+  public void setAvatar(String avatar) {
+    this.avatar = avatar;
+  }
 
-    public String getBio() {
-        return bio;
-    }
+  public String getEmail() {
+    return email;
+  }
 
-    public void setBio(String bio) {
-        this.bio = bio;
-    }
+  public void setEmail(String email) {
+    this.email = email;
+  }
 
-    public Integer getScore() {
-        return score;
-    }
+  public String getMobile() {
+    return mobile;
+  }
 
-    public void setScore(Integer score) {
-        this.score = score;
-    }
+  public void setMobile(String mobile) {
+    this.mobile = mobile;
+  }
 
-    public String getToken() {
-        return token;
-    }
+  public String getBio() {
+    return bio;
+  }
 
-    public void setToken(String token) {
-        this.token = token;
-    }
+  public void setBio(String bio) {
+    this.bio = bio;
+  }
 
-    public Boolean getActive() {
-        return active;
-    }
+  public Integer getScore() {
+    return score;
+  }
 
-    public void setActive(Boolean active) {
-        this.active = active;
-    }
+  public void setScore(Integer score) {
+    this.score = score;
+  }
 
-    public Boolean getStatus() {
-        return status;
-    }
+  public String getToken() {
+    return token;
+  }
 
-    public void setStatus(Boolean status) {
-        this.status = status;
-    }
+  public void setToken(String token) {
+    this.token = token;
+  }
 
-    public Integer getRoleId() {
-        return roleId;
-    }
+  public Boolean getActive() {
+    return active;
+  }
 
-    public void setRoleId(Integer roleId) {
-        this.roleId = roleId;
-    }
+  public void setActive(Boolean active) {
+    this.active = active;
+  }
 
-    public Date getCreateTime() {
-        return createTime;
-    }
+  public Boolean getStatus() {
+    return status;
+  }
 
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
+  public void setStatus(Boolean status) {
+    this.status = status;
+  }
 
-    public Date getModifyTime() {
-        return modifyTime;
-    }
+  public Integer getRoleId() {
+    return roleId;
+  }
 
-    public void setModifyTime(Date modifyTime) {
-        this.modifyTime = modifyTime;
-    }
-    
+  public void setRoleId(Integer roleId) {
+    this.roleId = roleId;
+  }
+
+  public Date getCreateTime() {
+    return createTime;
+  }
+
+  public void setCreateTime(Date createTime) {
+    this.createTime = createTime;
+  }
+
+  public Date getModifyTime() {
+    return modifyTime;
+  }
+
+  public void setModifyTime(Date modifyTime) {
+    this.modifyTime = modifyTime;
+  }
 }

@@ -3,18 +3,22 @@ package com.liushao.common.exception;
 import com.liushao.common.api.ApiErrorCode;
 
 public class ApiException extends RuntimeException {
-    private ApiErrorCode errorCode;
+  private final int status;
 
-    public ApiException(ApiErrorCode errorCode) {
-        super(errorCode.getMessage());
-        this.errorCode = errorCode;
-    }
+  public ApiException(int status, String message) {
+    super(message);
+    this.status = status;
+  }
 
-    public ApiException(String message) {
-        super(message);
-    }
+  public ApiException(String message) {
+    this(400, message);
+  }
 
-    public ApiErrorCode getErrorCode() {
-        return errorCode;
-    }
+  public ApiException(ApiErrorCode code) {
+    this(code.getCode() >= 400 ? code.getCode() : 400, code.getMessage());
+  }
+
+  public int getStatus() {
+    return status;
+  }
 }
