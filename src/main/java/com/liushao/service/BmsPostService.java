@@ -70,8 +70,16 @@ public class BmsPostService {
   public PostDetail detail(int id) {
     var post = posts.findById(id).orElseThrow(() -> new ApiException(404, "帖子不存在"));
     requireAuthor(post);
+    if (!"PUBLISHED".equals(post.getModerationStatus())) throw new ApiException(404, "帖子不存在");
     posts.incrementViews(id);
     return view(posts.findById(id).orElseThrow());
+  }
+
+  @Transactional(readOnly = true)
+  public PostDetail ownDetail(int id, UmsUser user) {
+    var post = posts.findById(id).orElseThrow(() -> new ApiException(404, "帖子不存在"));
+    if (!post.getUserId().equals(user.getId())) throw new ApiException(403, "只能访问自己的非公开帖子");
+    return view(post);
   }
 
   @Transactional
@@ -92,6 +100,7 @@ public class BmsPostService {
     var post = owned(id, user);
     if (dto.getVersion() == null) throw new ApiException(400, "缺少帖子版本，请刷新后重试");
     if (!dto.getVersion().equals(post.getVersion())) throw new ApiException(409, "帖子已被修改，请刷新后重试");
+    if (!"PUBLISHED".equals(post.getModerationStatus())) post.setModerationStatus("PENDING");
     post.setTitle(dto.getTitle().trim());
     post.setContent(dto.getContent());
     post.setModifyTime(new Date());
@@ -133,6 +142,13 @@ public class BmsPostService {
         post.getVersion(),
         post.getCreateTime(),
         post.getModifyTime(),
-        tags.forPost(post.getId()));
+        tags.forPost(post.getId()),
+        post.getLikes(),
+        post.getComments(),
+        post.getCollects(),
+        post.getTop(),
+        post.getEssence(),
+        post.getModerationStatus(),
+        post.getModerationReason());
   }
 }

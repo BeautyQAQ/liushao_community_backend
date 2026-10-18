@@ -64,4 +64,17 @@ class JwtAuthenticationFilterTest {
       verify(chain).doFilter(request, response);
     }
   }
+
+  @Test
+  void internalApiIsDisabledWithoutAConfiguredSecretEvenWithClaimedHeaders() throws Exception {
+    var request = new MockHttpServletRequest();
+    request.setServletPath("/internal/admin/users");
+    request.addHeader("X-Community-Admin-Key", "attacker-key-abcdefghijklmnopqrstuvwxyz");
+    request.addHeader("X-Community-Admin-Actor", "administrator");
+    var response = new MockHttpServletResponse();
+    var chain = mock(FilterChain.class);
+    filter.doFilter(request, response, chain);
+    assertEquals(403, response.getStatus());
+    verifyNoInteractions(chain);
+  }
 }

@@ -10,6 +10,7 @@ import jakarta.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 import java.time.*;
 import java.util.*;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +20,7 @@ public class UmsUserService {
   @Resource private UmsUserDao umsUserDao;
   @Resource private JwtUtil jwtUtil;
   @Resource private CommunitySessions sessions;
+  @Resource private JdbcTemplate db;
   private final BCryptPasswordEncoder passwords = new BCryptPasswordEncoder();
   private final String dummy = passwords.encode(UUID.randomUUID().toString());
 
@@ -28,6 +30,15 @@ public class UmsUserService {
 
   public UmsUser requireUser(String username) {
     var user = findUserByUsername(username);
+    if (user == null || !Boolean.TRUE.equals(user.getStatus()))
+      throw new ApiException(404, "用户不存在");
+    return user;
+  }
+
+  /** Serialize JPA writes with account verification, password resets, and moderation. */
+  @Transactional(propagation = org.springframework.transaction.annotation.Propagation.MANDATORY)
+  public UmsUser requireUserForUpdate(String username) {
+    var user = umsUserDao.findLockedByUsername(username);
     if (user == null || !Boolean.TRUE.equals(user.getStatus()))
       throw new ApiException(404, "用户不存在");
     return user;
@@ -67,7 +78,7 @@ public class UmsUserService {
 
   @Transactional
   public UmsUser updateProfile(String username, ProfileRequests.Profile input) {
-    var user = requireUser(username);
+    var user = requireUserForUpdate(username);
     user.setAlias(input.alias().trim());
     user.setBio(Objects.toString(input.bio(), "").trim());
     user.setModifyTime(new Date());
@@ -76,7 +87,7 @@ public class UmsUserService {
 
   @Transactional
   public void password(String username, ProfileRequests.Password input) {
-    var user = requireUser(username);
+    var user = requireUserForUpdate(username);
     if (!passwords.matches(input.currentPass(), user.getPassword()))
       throw new ApiException(400, "当前密码不正确");
     if (!input.password().equals(input.checkPass())) throw new ApiException(400, "两次输入的密码不一致");
@@ -85,6 +96,7 @@ public class UmsUserService {
     user.setAuthVersion(user.getAuthVersion() + 1);
     user.setModifyTime(new Date());
     umsUserDao.save(user);
+    db.update("DELETE FROM community_email_code WHERE user_id=?", user.getId());
   }
 
   public Map<String, Object> publicProfile(String username) {

@@ -12,6 +12,8 @@ import java.time.Duration;
 import java.util.*;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.health.Health;
+import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -27,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class CommunityApiIntegrationTest {
   @Autowired MockMvc mvc;
+  @Autowired TestRedisHealthIndicator redisHealth;
   @Autowired ObjectMapper json;
   @Autowired JdbcTemplate db;
   @MockitoBean CommunitySessions sessions;
@@ -34,6 +37,7 @@ class CommunityApiIntegrationTest {
 
   @BeforeEach
   void setup() {
+    redisHealth.current = Health.up().build();
     when(sessions.allow(anyString(), anyInt())).thenReturn(true);
     doAnswer(
             a -> {
@@ -104,6 +108,34 @@ class CommunityApiIntegrationTest {
 
   JsonNode create(String token, String title, String... tags) throws Exception {
     return data(send(post("/post/add"), postInput(title, tags), token));
+  }
+
+  @Test
+  void healthProbesArePublicAndDoNotRevealInfrastructure() throws Exception {
+    for (String endpoint :
+        List.of("/actuator/health", "/actuator/health/liveness", "/actuator/health/readiness")) {
+      mvc.perform(get(endpoint))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.status").value("UP"))
+          .andExpect(jsonPath("$.components").doesNotExist())
+          .andExpect(jsonPath("$.details").doesNotExist());
+    }
+    mvc.perform(get("/actuator/env")).andExpect(status().isNotFound());
+    mvc.perform(get("/actuator/configprops")).andExpect(status().isNotFound());
+  }
+
+  @Test
+  void readinessFailsWhenRedisIsDownButLivenessStaysUp() throws Exception {
+    redisHealth.current =
+        Health.down().withDetail("private-host", "should-not-be-published").build();
+    mvc.perform(get("/actuator/health/readiness"))
+        .andExpect(status().isServiceUnavailable())
+        .andExpect(jsonPath("$.status").value("DOWN"))
+        .andExpect(jsonPath("$.components").doesNotExist())
+        .andExpect(jsonPath("$.details").doesNotExist());
+    mvc.perform(get("/actuator/health/liveness"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.status").value("UP"));
   }
 
   @Test
@@ -238,6 +270,7 @@ class CommunityApiIntegrationTest {
   @Test
   void passwordAndLogoutInvalidateSessionsAndDisabledUsersCannotWrite() throws Exception {
     String alice = user("alice");
+    send(put("/ums/user/password"), Map.of(), alice).andExpect(status().isMethodNotAllowed());
     send(
             post("/ums/user/password"),
             Map.of("currentPass", "wrong", "password", "New-pass-123", "checkPass", "New-pass-123"),
@@ -301,5 +334,22 @@ class CommunityApiIntegrationTest {
     mvc.perform(get("/tag/list"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.length()").value(0));
+  }
+
+  @org.springframework.boot.test.context.TestConfiguration(proxyBeanMethods = false)
+  static class HealthTestConfiguration {
+    @org.springframework.context.annotation.Bean
+    TestRedisHealthIndicator redisHealthIndicator() {
+      return new TestRedisHealthIndicator();
+    }
+  }
+
+  static class TestRedisHealthIndicator implements HealthIndicator {
+    Health current = Health.up().build();
+
+    @Override
+    public Health health() {
+      return current;
+    }
   }
 }

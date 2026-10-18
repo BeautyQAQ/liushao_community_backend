@@ -7,8 +7,13 @@ import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
 @Slf4j
 @RestControllerAdvice
@@ -40,6 +45,22 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(OptimisticLockingFailureException.class)
   ResponseEntity<ApiResult<Void>> changed() {
     return error(409, "内容已被更新，请刷新后重试");
+  }
+
+  @ExceptionHandler(MaxUploadSizeExceededException.class)
+  ResponseEntity<ApiResult<Void>> uploadTooLarge() { return error(413, "文件过大，请选择不超过4MB的图片"); }
+
+  @ExceptionHandler(MissingServletRequestPartException.class)
+  ResponseEntity<ApiResult<Void>> missingUpload() { return error(400, "请选择要上传的图片"); }
+
+  @ExceptionHandler({NoHandlerFoundException.class, NoResourceFoundException.class})
+  ResponseEntity<ApiResult<Void>> notFound() {
+    return error(404, "请求的资源不存在");
+  }
+
+  @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+  ResponseEntity<ApiResult<Void>> methodNotAllowed() {
+    return error(405, "请求方法不支持");
   }
 
   @ExceptionHandler(Exception.class)

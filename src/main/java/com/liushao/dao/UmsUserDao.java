@@ -1,8 +1,12 @@
 package com.liushao.dao;
 
 import com.liushao.model.entity.UmsUser;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface UmsUserDao
     extends JpaRepository<UmsUser, Integer>, JpaSpecificationExecutor<UmsUser> {
@@ -24,4 +28,8 @@ public interface UmsUserDao
    * @return 用户信息
    */
   UmsUser findByUsername(String username);
+
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @Query("select user from UmsUser user where user.username = :username")
+  UmsUser findLockedByUsername(@Param("username") String username);
 }

@@ -23,10 +23,12 @@ public class CommunityApplication extends SpringBootServletInitializer {
   public FilterRegistrationBean<JwtAuthenticationFilter> jwtFilter(
       com.liushao.utils.JwtUtil jwt,
       com.liushao.dao.UmsUserDao users,
-      com.liushao.security.CommunitySessions sessions) {
+      com.liushao.security.CommunitySessions sessions,
+      @org.springframework.beans.factory.annotation.Value("${COMMUNITY_ADMIN_KEY:}")
+          String adminKey) {
     final FilterRegistrationBean<JwtAuthenticationFilter> registrationBean =
         new FilterRegistrationBean<>();
-    JwtAuthenticationFilter filter = new JwtAuthenticationFilter(jwt, users, sessions);
+    JwtAuthenticationFilter filter = new JwtAuthenticationFilter(jwt, users, sessions, adminKey);
     registrationBean.setFilter(filter);
     return registrationBean;
   }

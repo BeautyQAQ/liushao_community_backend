@@ -9,14 +9,32 @@ import org.springframework.stereotype.Service;
 public class BmsTagService {
   private final BmsTagDao tags;
   private final BmsTopicTagDao links;
+  private final CommunityData data;
 
-  public BmsTagService(BmsTagDao tags, BmsTopicTagDao links) {
+  public BmsTagService(BmsTagDao tags, BmsTopicTagDao links, CommunityData data) {
+    this.data = data;
     this.tags = tags;
     this.links = links;
   }
 
   public List<BmsTag> popular() {
-    return tags.findTop50ByTopicCountGreaterThanOrderByTopicCountDescNameAsc(0);
+    return data
+        .rows(
+            "SELECT g.id,g.name,COUNT(*) AS topic_count FROM bms_tag g JOIN bms_post_tag pt ON"
+                + " pt.tag_id=g.id JOIN bms_post p ON p.id=pt.topic_id JOIN ums_user u ON"
+                + " u.id=p.user_id WHERE "
+                + CommunityData.PUBLIC_POST
+                + " GROUP BY g.id,g.name ORDER BY topic_count DESC,g.name LIMIT 50")
+        .stream()
+        .map(
+            row -> {
+              var tag = new BmsTag();
+              tag.setId(CommunityData.id(row, "id"));
+              tag.setName((String) row.get("name"));
+              tag.setTopicCount(CommunityData.id(row, "topicCount"));
+              return tag;
+            })
+        .toList();
   }
 
   public List<BmsTag> forPost(int id) {

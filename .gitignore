@@ -17,6 +17,11 @@
 *.ipr
 .vscode
 /logs/
+/data/
 
 .env
 .env.local
+
+# Local environment files (only examples are committed)
+.env.*
+!.env.example

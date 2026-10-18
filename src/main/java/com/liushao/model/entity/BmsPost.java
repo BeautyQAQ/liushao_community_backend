@@ -46,6 +46,37 @@ public class BmsPost implements Serializable {
   /** 收藏数 */
   private Integer collects = 0;
 
+  private Integer likes = 0;
+
+  @Column(length = 16, nullable = false)
+  private String moderationStatus = "PUBLISHED";
+
+  private String moderationReason;
+
+  public Integer getLikes() {
+    return likes;
+  }
+
+  public void setLikes(Integer value) {
+    likes = value;
+  }
+
+  public String getModerationStatus() {
+    return moderationStatus;
+  }
+
+  public void setModerationStatus(String value) {
+    moderationStatus = value;
+  }
+
+  public String getModerationReason() {
+    return moderationReason;
+  }
+
+  public void setModerationReason(String value) {
+    moderationReason = value;
+  }
+
   /** 浏览数 */
   private Integer view = 0;
 

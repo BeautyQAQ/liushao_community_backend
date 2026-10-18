@@ -15,4 +15,11 @@ public record PostDetail(
     Long version,
     Date createTime,
     Date modifyTime,
-    List<BmsTag> tags) {}
+    List<BmsTag> tags,
+    Integer likes,
+    Integer comments,
+    Integer collects,
+    Boolean top,
+    Boolean essence,
+    String status,
+    String moderationReason) {}

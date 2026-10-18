@@ -12,9 +12,9 @@ cp .env.example .env.local
 ./mvnw spring-boot:run
 ```
 
-默认端口 8080。包装脚本使用 `/opt/java/jdk21`，支持 `JAVA_HOME` 覆盖；首次下载并校验 Maven 3.9.11。Spring 读取 `.env.local`（Java properties，值不用引号），环境变量优先。JWT 密钥至少 64 字节，可以用 `openssl rand -hex 64` 生成。
+默认端口 8080。包装脚本使用 `/opt/java/jdk21`，支持 `JAVA_HOME` 覆盖；首次下载并校验 Maven 3.9.11。未指定 profile 时默认启用 `local`，读取 `.env.local`（Java properties，值不用引号），环境变量优先。JWT 密钥至少 64 字节，可以用 `openssl rand -hex 64` 生成。
 
-Flyway V1 自动创建 7 张业务表和版本历史表，初始化欢迎公告和提示语。Hibernate 使用 `validate` 检查实体与表结构。新库不要导入旧 `liushao_community.sql`：历史 SQL 使用 varchar 雪花 ID，与当前整数自增模型不兼容；已有数据需另行迁移，不能直接 baseline 或清空。
+Flyway V1 自动创建 7 张基础业务表和版本历史表，初始化欢迎公告和提示语；V2 增加互动与运营，V3 增加邮件验证码和图片记录。Hibernate 使用 `validate` 检查实体与表结构。新库不要导入旧 `liushao_community.sql`：历史 SQL 使用 varchar 雪花 ID，与当前整数自增模型不兼容；已有数据需另行迁移，不能直接 baseline 或清空。
 
 NAS 开发环境使用 `liushao_community` 数据库、Redis DB 13，与管理端隔离。实际凭据只在被 Git 忽略的本地配置中。社区账号通过注册页面创建，不复用后台管理员。
 
@@ -39,7 +39,7 @@ NAS 开发环境使用 `liushao_community` 数据库、Redis DB 13，与管理�
 | `GET /tag/list` | 最多 50 个有帖子的标签，按使用量排序 |
 | `GET /billboard/show,/tip/today,/promotion/all` | 首页公告、提示语和资源链接；空数据可正常返回 |
 
-账号为 2–32 位字母、数字或下划线，登录标识统一为小写；密码至少 8 个字符且最多 72 个 UTF-8 字节，使用 BCrypt。邮箱是注册联系信息，执行格式和唯一性检查；当前未配置 SMTP，不发送验证或找回邮件。
+账号为 2–32 位字母、数字或下划线，登录标识统一为小写；密码至少 8 个字符且最多 72 个 UTF-8 字节，使用 BCrypt。邮箱执行格式和唯一性检查，配置 SMTP 后支持邮箱验证和密码找回；未配置时邮件发送接口明确返回 503。
 
 标题最多 160 个字符，正文最多 20000 个字符，最多 5 个标签，每个最多 32 字符。标签统一小写并去重。正文原样保存，包括 Unicode 和 Markdown，前端负责安全渲染。编辑版本冲突返回 409，防止旧编辑页面覆盖新内容；非作者修改/删除返回 403。
 
@@ -53,6 +53,58 @@ Redis 使用 `liushao:community:` 前缀保存登录会话与原子限流计数�
 ./mvnw verify
 ```
 
-当前 21 项测试全部通过。测试使用 Flyway 初始化的 H2 与认证状态替身，不连接 NAS。覆盖登录/JWT/过滤器、联表分页、注册冲突、帖子全流程、越权、标签计数、旧版本冲突、搜索边界、公开资料隐私、改密/退出、限流和 CORS。
+当前 58 项测试全部通过，覆盖健康探针、生产配置、社会互动/运营、邮箱与图片上传。测试使用 Flyway 初始化的 H2 与认证状态替身，不连接 NAS。覆盖登录/JWT/过滤器、联表分页、注册冲突、帖子全流程、越权、标签计数、旧版本冲突、搜索边界、公开资料隐私、改密/退出、限流和 CORS，以及真实事务锁等待下的账号安全状态一致性。
 
-真实浏览器联调使用 NAS MySQL 和 Redis，覆盖注册 → 登录 → 发帖 → 详情 → 编辑 → 搜索/标签/个人主页 → 删除，以及跨账号越权拦截。临时测试记录完成后清理。
+另有 4 项真实 MySQL 时区回归，指定 `MYSQL_TIME_ZONE_TEST_URL`、`MYSQL_TIME_ZONE_TEST_USERNAME`、`MYSQL_TIME_ZONE_TEST_PASSWORD` 后运行 `./mvnw -Dtest=MysqlTimeZoneIntegrationTest test`。URL 指向隔离测试库且不要添加时区参数；测试通过当前连接的临时表，覆盖 UTC/上海 JVM 和新旧连接 URL，验证数据库默认时间、Java 时间及数据库 epoch 一致；不修改业务记录。未提供配置时跳过这一组。
+
+本轮功能验收使用隔离的本地 MySQL、Redis 和 SMTP，配合真实 API 与浏览器检查，不使用 NAS 数据。
+
+
+## 容器与生产配置
+
+```bash
+docker build -t liushao/community-backend:local .
+# 在 .env.prod 中填写实际 MySQL/Redis 地址、独立应用数据库账号及强密钥
+docker run --rm --name liushao-community --env-file .env.prod \
+  -e UPLOAD_DIRECTORY=/app/data/uploads -v liushao-community-uploads:/app/data/uploads \
+  -p 127.0.0.1:8080:8080 liushao/community-backend:local
+```
+
+镜像以 Maven 3.9.11/JDK 21 编译，使用 Temurin JRE 21 运行，UID/GID 为 `10001:10001`。仅复制指定的可执行 JAR 到 `/app/app.jar`；构建上下文仅包含 `pom.xml` 和 `src`，本地环境配置、Git 历史及 `target` 不进入镜像。日志写 stdout/stderr，由容器运行时负责采集和轮转。JVM 参数使用 `JAVA_TOOL_OPTIONS`。
+
+镜像默认启用 `prod`；直接运行 JAR 时设置 `SPRING_PROFILES_ACTIVE=prod`。生产启动前校验 `DB_URL`、`DB_USERNAME`、`DB_PASSWORD`、`REDIS_HOST`、`REDIS_PASSWORD`、`JWT_SECRET` 必须显式配置且非空，错误仅列出缺失变量名。JWT 密钥仍要求至少 64 字节。生产 profile 不读取 `.env.local`；`.env.prod` 由 Docker 的 `--env-file` 加载，支持的格式是 `KEY=value`，不要放入仓库。社区端还必须提供 `CORS_ALLOWED_ORIGINS`，填写实际前端来源（含协议及端口，多个来源用逗号分隔），生产禁用 Swagger UI 和 OpenAPI 文档。
+
+默认 JDBC URL 使用 `connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true`，连接池也启用 `forceConnectionTimeZoneToSession`，确保驱动与 MySQL 当前连接的时区一致。已有 `serverTimezone=Asia/Shanghai` URL 也会同步会话时区，避免数据库自动时间与 Java 写入时间产生 8 小时差异；不要在 URL 中显式关闭该选项。只调整当前连接，不修改 MySQL 全局时区。参见 [Connector/J 时间配置](https://dev.mysql.com/doc/connector-j/en/connector-j-connp-props-datetime-types-processing.html)。
+
+`REDIS_PORT` 默认 `6379`，`REDIS_DATABASE` 默认 `0`，按部署分配独立数据库编号；`SERVER_PORT` 默认 `8080`，修改时同步调整宿主端口映射。停止服务时支持 30 秒优雅退出，容器停止宽限期应至少 35 秒。生产启用 Tomcat 原生转发头处理；反向代理需覆盖客户端转发头，后端仅在可信内网监听，通过代理恢复真实 IP 供登录限流使用。
+
+## 健康检查与 CI
+
+[Spring Boot Actuator](https://docs.spring.io/spring-boot/3.5/reference/actuator/endpoints.html) 只开放健康检查，响应仅含状态及探针分组名称，不暴露配置、连接信息或组件细节：
+
+- `GET /actuator/health/liveness`：进程存活，不依赖数据库或 Redis。
+- `GET /actuator/health/readiness`：应用就绪且 MySQL、Redis 可用；依赖故障返回 HTTP 503。
+- `GET /actuator/health`：总体健康状态。以上端点无需登录，与业务 API 使用同一端口。
+
+Docker 每 30 秒检查 readiness，启动宽限期 90 秒。普通 `./mvnw verify` 使用 `test` profile，不加载开发 `.env.local`，健康检查测试用 Redis 健康替身验证就绪失败及细节隐藏，不连接 NAS。
+
+独立仓库的 `.github/workflows/ci.yml` 在 push、PR 或手动触发时运行 Java 21 `./mvnw verify` 和镜像构建，不需要数据库服务或仓库密钥，不推送镜像、不部署。
+
+
+## 社区互动与运营
+
+评论和回复、点赞/取消点赞、收藏/取消收藏、关注/取消关注、站内通知与私信采用 Flyway V2 新表，关系有数据库唯一约束。评论回复归属同一帖子，回复统一关联根评论；删除根评论同时删除回复。帖子删除同时清理评论、点赞、收藏和相关通知，更新标签计数。
+
+`/me/**`、`/notifications/**`、`/messages/**`、个人关系状态与帖子互动状态的 GET 接口也需要有效 JWT。私信只能在当前登录用户参与的会话内读写；客户端传入的身份头不作为授权依据。新接口分页输入 `pageNo>=1`、`size=1..50`，输出沿用 `{content,totalElements,totalPages,number,size}`。评论每用户每分钟最多30次、关系变更60次、私信20次。接口字段见 [社会功能 API](docs/SOCIAL_API.md)。
+
+运营接口位于 `/internal/admin/**`，仅供管理后端调用。`COMMUNITY_ADMIN_KEY` 默认空时关闭内部访问，启用需两个后端配置相同的至少32字符强密钥；使用 `X-Community-Admin-Key` 和 URL 编码的 `X-Community-Admin-Actor` 请求头，不向浏览器发送共享密钥。管理后端负责细分权限校验，社区后端使用常量时间密钥比较并为每次变更保存操作人和审计记录。见 [运营接口](docs/OPERATIONS_API.md)。
+
+运营支持社区用户禁用/恢复，帖子审核/下架/置顶/加精，评论隐藏/恢复/删除，以及公告、每日提示、资源链接与标签维护。帖子状态为 `PUBLISHED`、`PENDING` 或 `HIDDEN`；公开列表、搜索、详情、标签、评论和收藏均过滤不可见帖子及禁用作者。作者可通过 `/me/posts` 查看全部个人帖子并修改非公开内容，修改后进入待审核状态。账号禁用/恢复会递增认证版本，旧令牌持续失效；评论与互动统计随账号可见性调整。已被帖子引用的标签不能直接删除。
+
+## 邮箱与图片
+
+配置 `SMTP_HOST`、`SMTP_PORT`、`SMTP_USERNAME`、`SMTP_PASSWORD` 和 `SMTP_FROM`；默认开启认证及 STARTTLS。已登录用户通过 `POST /ums/user/email/send` 和 `/ums/user/email/verify` 验证邮箱。公开的 `POST /ums/user/password/forgot`、`/ums/user/password/reset` 用于找回密码。验证码只保存 HMAC 摘要，有效期 10 分钟、发送间隔 60 秒、最多 5 次错误尝试且只能消费一次；主动改密或找回成功都会清除旧验证码并撤销旧会话。账号资料、密码与头像更新与邮件验证、重置、禁用共享用户行锁，防止并发写入覆盖账号安全状态。
+
+`POST /uploads/image` 需要登录，以 multipart 字段 `file` 接收不超过 4 MB 的 PNG/JPEG，解码重编码为 PNG 后返回公开地址；单边不超过 8192 像素、总像素不超过 2000 万，处理后文件不超过 8 MB。`POST /ums/user/avatar` 只能使用当前用户上传的地址。`GET /uploads/{filename}` 公开读取已经登记的图片。
+
+图片目录由 `UPLOAD_DIRECTORY` 指定，容器应持久挂载 `/app/data/uploads`，目录需要 UID/GID `10001:10001` 可写。数据库备份仅包含图片记录，备份恢复还需保存并恢复上传目录；SMTP 不参与 readiness，发送失败由对应接口返回 503。

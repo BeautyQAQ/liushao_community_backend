@@ -15,7 +15,9 @@ public class BmsTopicDaoImpl {
 
   public Page<PostVO> findPostList(
       String tab, Pageable pageable, String query, String tag, String author) {
-    String from = " FROM bms_post t JOIN ums_user u ON t.user_id=u.id WHERE u.status=TRUE";
+    String from =
+        " FROM bms_post t JOIN ums_user u ON t.user_id=u.id WHERE u.status=TRUE AND"
+            + " t.moderation_status='PUBLISHED'";
     Map<String, Object> params = new HashMap<>();
     if ("hot".equals(tab)) {
       from += " AND t.create_time>=:cutoff";
@@ -56,7 +58,7 @@ public class BmsTopicDaoImpl {
             .unwrap(org.hibernate.Session.class)
             .createNativeQuery(
                 "SELECT"
-                    + " t.id,t.title,t.user_id,t.comments,t.view,t.collects,t.top,t.essence,t.create_time,t.modify_time,u.username,u.alias,u.avatar"
+                    + " t.id,t.title,t.user_id,t.comments,t.view,t.collects,t.top,t.essence,t.create_time,t.modify_time,u.username,u.alias,u.avatar,t.likes"
                     + from
                     + sort,
                 Object[].class);
@@ -86,6 +88,7 @@ public class BmsTopicDaoImpl {
                   p.setUsername((String) row[10]);
                   p.setAlias((String) row[11]);
                   p.setAvatar((String) row[12]);
+                  p.setLikes(integer(row[13]));
                   p.setTags(List.of());
                   return p;
                 })
