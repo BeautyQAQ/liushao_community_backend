@@ -18,6 +18,20 @@ Base frontend /api, backend paths below. Envelope `{code,message,data}`; paginat
 - POST /users/{username}/follow and DELETE same => relationship snapshot; idempotent; self follow rejected.
 - GET /me/following and /me/followers?pageNo=1&size=20 => page of `{id,username,alias,avatar,bio}`. Disabled accounts excluded.
 
+## Content discovery
+- GET /post/list?tab=essence&pageNo=1&size=10 => public post page filtered by the existing `essence` moderation flag. Same query/tag/author filters as latest/hot; pinned posts first, then newest; excludes unpublished posts and disabled authors.
+- GET /me/feed?pageNo=1&size=10 => authenticated current account's followed-author posts, newest first (global pinning does not reorder the feed). Supports query/tag/author. Never accepts a caller-supplied follower identity; missing authentication is 401. Unfollowing removes the author's posts immediately.
+- Post summaries/details carry `top` and `essence` booleans for public badges.
+
+## Private drafts
+- GET /me/drafts?pageNo=1&size=20 => page `{id,postId,title,excerpt,version,updatedAt}`. Current account only; never included in public post/search/tag APIs. Maximum 100 stored drafts per account.
+- GET /me/drafts/{uuid} => `{id,postId,postVersion,title,content,tags,version,updatedAt}`. Own draft only; another account's draft is 404.
+- PUT /me/drafts/{uuid} with `{title,content,tags,postId,postVersion,version}` saves a partial draft. Empty title/content are allowed; limits match posts. New UUID uses `version:0`; saved drafts return version 1 and increment on each save. Existing drafts require the last returned version; stale writes return 409 without replacing content.
+- `postId`/`postVersion` are both null for a new topic, or the original owned post ID/version for an edit. This association and base post version cannot change on the same draft.
+- DELETE /me/drafts/{uuid} with JSON `{version}` removes only the matching revision. A stale save with a nonzero version cannot recreate a removed draft.
+- POST /me/drafts/{uuid}/publish with JSON `{version}` requires nonblank title/content, creates the post (or updates its owned original using `postVersion`) and removes the draft in one transaction. Existing moderation and tag handling apply. A repeated publish is 404 and cannot create a second post. A version conflict keeps the draft intact.
+- Draft save/delete/publish lock the account before the draft/post to keep quota and concurrent writes consistent. All routes use the existing active JWT/session checks and `Cache-Control: no-store`.
+
 ## Notifications
 - GET /notifications?pageNo=1&size=20 => page `{id,type,actorUsername,actorAlias,postId,commentId,content,createdAt,read}`. type COMMENT/REPLY/LIKE/FOLLOW/MODERATION; content is plain text.
 - GET /notifications/unread => `{count}`.

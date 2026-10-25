@@ -39,7 +39,19 @@ public class BmsPostService {
   @Transactional(readOnly = true)
   public Page<PostVO> getList(
       String tab, int page, int size, String query, String tag, String author) {
-    if (!Set.of("latest", "hot").contains(tab)
+    return list(tab, page, size, query, tag, author, null);
+  }
+
+  @Transactional(readOnly = true)
+  public Page<PostVO> following(
+      UmsUser user, int page, int size, String query, String tag, String author) {
+    return list("following", page, size, query, tag, author, user.getId());
+  }
+
+  private Page<PostVO> list(
+      String tab, int page, int size, String query, String tag, String author, Integer followerId) {
+    if (!(Set.of("latest", "hot", "essence").contains(tab)
+            || ("following".equals(tab) && followerId != null))
         || page < 1
         || size < 1
         || size > 50
@@ -49,7 +61,7 @@ public class BmsPostService {
         || author.length() > 32) throw new ApiException(400, "分页或搜索参数不正确");
     var result =
         posts.findPostList(
-            tab, PageRequest.of(page - 1, size), query.trim(), tag.trim(), author.trim());
+            tab, PageRequest.of(page - 1, size), query.trim(), tag.trim(), author.trim(), followerId);
     var relations = links.findByTopicIdIn(result.stream().map(PostVO::getId).toList());
     var byId =
         tagDao

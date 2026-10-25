@@ -14,7 +14,7 @@ cp .env.example .env.local
 
 默认端口 8080。包装脚本使用 `/opt/java/jdk21`，支持 `JAVA_HOME` 覆盖；首次下载并校验 Maven 3.9.11。未指定 profile 时默认启用 `local`，读取 `.env.local`（Java properties，值不用引号），环境变量优先。JWT 密钥至少 64 字节，可以用 `openssl rand -hex 64` 生成。
 
-Flyway V1 自动创建 7 张基础业务表和版本历史表，初始化欢迎公告和提示语；V2 增加互动与运营，V3 增加邮件验证码和图片记录。Hibernate 使用 `validate` 检查实体与表结构。新库不要导入旧 `liushao_community.sql`：历史 SQL 使用 varchar 雪花 ID，与当前整数自增模型不兼容；已有数据需另行迁移，不能直接 baseline 或清空。
+Flyway V1 自动创建 7 张基础业务表和版本历史表，初始化欢迎公告和提示语；V2 增加互动与运营，V3 增加邮件验证码和图片记录，V4 增加私有草稿。Hibernate 使用 `validate` 检查实体与表结构。新库不要导入旧 `liushao_community.sql`：历史 SQL 使用 varchar 雪花 ID，与当前整数自增模型不兼容；已有数据需另行迁移，不能直接 baseline 或清空。
 
 NAS 开发环境使用 `liushao_community` 数据库、Redis DB 13，与管理端隔离。实际凭据只在被 Git 忽略的本地配置中。社区账号通过注册页面创建，不复用后台管理员。
 
@@ -31,7 +31,11 @@ NAS 开发环境使用 `liushao_community` 数据库、Redis DB 13，与管理�
 | `GET /ums/user/profile/{username}` | 公开资料，不含邮箱、手机号等联系信息 |
 | `POST /ums/user/profile` | 修改自己的 alias/bio |
 | `POST /ums/user/password` | currentPass/password/checkPass；改密使全部旧令牌失效 |
-| `GET /post/list` | tab=latest/hot、pageNo、size、query、tag、author |
+| `GET /post/list` | tab=latest/hot/essence、pageNo、size、query、tag、author |
+| `GET /me/feed` | 当前用户关注的作者的公开帖子，按发布时间排序；支持相同分页与筛选 |
+| `GET /me/drafts` | 当前用户的私有草稿列表，按更新时间排序 |
+| `GET/PUT/DELETE /me/drafts/{uuid}` | 读取、保存、删除本人草稿；写操作校验草稿 version |
+| `POST /me/drafts/{uuid}/publish` | 校验 version 后发布或更新原帖，同一事务移除草稿 |
 | `GET /post/{id}` | 详情，浏览计数原子增加 |
 | `POST /post/add` | 发布 title/content/tags |
 | `PUT /post/{id}` | 作者编辑，额外传入详情返回的 version |
@@ -53,7 +57,7 @@ Redis 使用 `liushao:community:` 前缀保存登录会话与原子限流计数�
 ./mvnw verify
 ```
 
-当前 58 项测试全部通过，覆盖健康探针、生产配置、社会互动/运营、邮箱与图片上传。测试使用 Flyway 初始化的 H2 与认证状态替身，不连接 NAS。覆盖登录/JWT/过滤器、联表分页、注册冲突、帖子全流程、越权、标签计数、旧版本冲突、搜索边界、公开资料隐私、改密/退出、限流和 CORS，以及真实事务锁等待下的账号安全状态一致性。
+当前 66 项常规测试全部通过，覆盖健康探针、生产配置、社会互动/运营、邮箱与图片上传，以及精华、关注动态和私有草稿。测试使用 Flyway 初始化的 H2 与认证状态替身，不连接 NAS。覆盖登录/JWT/过滤器、联表分页、注册冲突、帖子全流程、越权、标签计数、旧版本冲突、搜索边界、公开资料隐私、改密/退出、限流和 CORS，以及真实事务锁等待下的账号安全状态一致性。新增草稿场景验证账号隔离、过期版本拒绝、发布与移除的事务、原帖冲突及审核状态保留和草稿数量限制。
 
 另有 4 项真实 MySQL 时区回归，指定 `MYSQL_TIME_ZONE_TEST_URL`、`MYSQL_TIME_ZONE_TEST_USERNAME`、`MYSQL_TIME_ZONE_TEST_PASSWORD` 后运行 `./mvnw -Dtest=MysqlTimeZoneIntegrationTest test`。URL 指向隔离测试库且不要添加时区参数；测试通过当前连接的临时表，覆盖 UTC/上海 JVM 和新旧连接 URL，验证数据库默认时间、Java 时间及数据库 epoch 一致；不修改业务记录。未提供配置时跳过这一组。
 

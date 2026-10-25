@@ -98,6 +98,18 @@ public class CommunitySocialController {
     return ApiResult.success(social.ownPosts(user, pageNo, size));
   }
 
+  @GetMapping("/me/feed")
+  public ApiResult<PageResult<com.liushao.model.vo.PostVO>> feed(
+      @RequestAttribute("authenticatedUsername") String user,
+      @RequestParam(defaultValue = "1") int pageNo,
+      @RequestParam(defaultValue = "10") int size,
+      @RequestParam(defaultValue = "") String query,
+      @RequestParam(defaultValue = "") String tag,
+      @RequestParam(defaultValue = "") String author) {
+    return ApiResult.success(
+        PageResult.from(posts.following(users.requireUser(user), pageNo, size, query, tag, author)));
+  }
+
   @GetMapping("/me/posts/{id}")
   public ApiResult<com.liushao.model.vo.PostDetail> ownPost(
       @PathVariable int id, @RequestAttribute("authenticatedUsername") String user) {

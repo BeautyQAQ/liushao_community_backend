@@ -15,10 +15,23 @@ public class BmsTopicDaoImpl {
 
   public Page<PostVO> findPostList(
       String tab, Pageable pageable, String query, String tag, String author) {
+    return findPostList(tab, pageable, query, tag, author, null);
+  }
+
+  public Page<PostVO> findPostList(
+      String tab, Pageable pageable, String query, String tag, String author, Integer followerId) {
     String from =
         " FROM bms_post t JOIN ums_user u ON t.user_id=u.id WHERE u.status=TRUE AND"
             + " t.moderation_status='PUBLISHED'";
     Map<String, Object> params = new HashMap<>();
+    if ("essence".equals(tab)) from += " AND t.essence=TRUE";
+    if ("following".equals(tab)) {
+      if (followerId == null) throw new IllegalArgumentException("关注动态需要当前用户");
+      from +=
+          " AND EXISTS(SELECT 1 FROM ums_follow f WHERE f.followed_id=t.user_id"
+              + " AND f.follower_id=:followerId)";
+      params.put("followerId", followerId);
+    }
     if ("hot".equals(tab)) {
       from += " AND t.create_time>=:cutoff";
       params.put("cutoff", Date.from(Instant.now().minus(Duration.ofDays(7))));
@@ -52,6 +65,8 @@ public class BmsTopicDaoImpl {
     String sort =
         "hot".equals(tab)
             ? " ORDER BY t.view DESC,t.create_time DESC,t.id DESC"
+            : "following".equals(tab)
+                ? " ORDER BY t.create_time DESC,t.id DESC"
             : " ORDER BY t.top DESC,t.create_time DESC,t.id DESC";
     var data =
         entityManager

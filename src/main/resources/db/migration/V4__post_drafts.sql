@@ -1,0 +1,10 @@
+CREATE TABLE bms_draft (
+ id VARCHAR(36) PRIMARY KEY, user_id INT NOT NULL, post_id INT,
+ post_version BIGINT, title VARCHAR(160) NOT NULL, content TEXT NOT NULL, tags TEXT NOT NULL,
+ version BIGINT NOT NULL DEFAULT 1,
+ created_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+ updated_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+ FOREIGN KEY(user_id) REFERENCES ums_user(id) ON DELETE CASCADE,
+ FOREIGN KEY(post_id) REFERENCES bms_post(id) ON DELETE CASCADE
+);
+CREATE INDEX idx_draft_user ON bms_draft(user_id,updated_at,id);

@@ -29,6 +29,9 @@ public interface BmsTopicDao
 
   Page<PostVO> findPostList(String tab, Pageable pageable, String query, String tag, String author);
 
+  Page<PostVO> findPostList(
+      String tab, Pageable pageable, String query, String tag, String author, Integer followerId);
+
   @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
   @org.springframework.data.jpa.repository.Query("select p from BmsPost p where p.id=:id")
   java.util.Optional<BmsPost> findLockedById(
