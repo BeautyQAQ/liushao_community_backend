@@ -25,3 +25,9 @@
 # Local environment files (only examples are committed)
 .env.*
 !.env.example
+
+# Local migration reports, deployment backups and Python caches
+.artifacts/
+backups/
+__pycache__/
+.local/

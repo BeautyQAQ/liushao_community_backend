@@ -196,15 +196,18 @@ public class CommunityOperationsService {
     audit(actor, "comment.delete", "comment", id, reason);
   }
 
-  private record Catalog(String table, String columns, String searchColumn) {}
+  private record Catalog(String table, String columns, List<String> searchColumns) {}
 
   private static Catalog catalog(String kind) {
     return switch (kind) {
       case "billboards" ->
-          new Catalog("bms_billboard", "id,content,is_visible AS visible,create_time", "content");
-      case "tips" -> new Catalog("bms_tip", "id,content,author,type AS enabled", "content");
-      case "promotions" -> new Catalog("bms_promotion", "id,title,link,description", "title");
-      case "tags" -> new Catalog("bms_tag", "id,name,topic_count", "name");
+          new Catalog(
+              "bms_billboard", "id,content,is_visible AS visible,create_time", List.of("content"));
+      case "tips" ->
+          new Catalog("bms_tip", "id,content,author,type AS enabled", List.of("content", "author"));
+      case "promotions" ->
+          new Catalog("bms_promotion", "id,title,link,description", List.of("title", "description"));
+      case "tags" -> new Catalog("bms_tag", "id,name,topic_count", List.of("name"));
       default -> throw new ApiException(404, "资源不存在");
     };
   }
@@ -213,11 +216,18 @@ public class CommunityOperationsService {
   public PageResult<Map<String, Object>> catalogList(
       String kind, String query, int page, int size) {
     var c = catalog(kind);
+    String condition =
+        String.join(
+            " OR ",
+            c.searchColumns().stream()
+                .map(column -> "LOWER(" + column + ") LIKE ? ESCAPE '!'")
+                .toList());
+    List<Object> parameters = Collections.nCopies(c.searchColumns().size(), search(query));
     return data.page(
         c.columns(),
-        " FROM " + c.table() + " WHERE LOWER(" + c.searchColumn() + ") LIKE ? ESCAPE '!'",
+        " FROM " + c.table() + " WHERE (" + condition + ")",
         "id DESC",
-        List.of(search(query)),
+        parameters,
         page,
         size);
   }

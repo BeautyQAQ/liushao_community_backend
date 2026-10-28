@@ -1,0 +1,92 @@
+{
+  "completedAt": "2026-10-28T06:23:40.625580+00:00",
+  "database": {
+    "host": "192.168.20.5",
+    "port": 3306,
+    "name": "liushao_community",
+    "tableCount": 25,
+    "adminVersion": "2",
+    "communityVersion": "5"
+  },
+  "source": {
+    "path": "liushao_community_backend/liushao_community.sql",
+    "sha256": "dbabc9f9a489f48285de7800dd38b40db62328a521fbc442119a088d948b49e5",
+    "offset": "+08:00"
+  },
+  "sourceCounts": {
+    "ums_user": 2,
+    "bms_tag": 14,
+    "bms_post": 12,
+    "bms_post_tag": 16,
+    "bms_comment": 0,
+    "bms_billboard": 2,
+    "bms_tip": 20,
+    "bms_promotion": 3,
+    "bms_follow": 3
+  },
+  "inserted": {
+    "ums_user": 2,
+    "bms_tag": 14,
+    "bms_post": 12,
+    "bms_post_tag": 14,
+    "bms_comment": 0,
+    "bms_billboard": 2,
+    "bms_tip": 20,
+    "bms_promotion": 3,
+    "ums_follow": 1
+  },
+  "finalCommunityCounts": {
+    "ums_user": 2,
+    "bms_tag": 14,
+    "bms_post": 12,
+    "bms_post_tag": 14,
+    "bms_comment": 0,
+    "bms_billboard": 3,
+    "bms_tip": 21,
+    "bms_promotion": 3,
+    "ums_follow": 1
+  },
+  "idMappingCount": 67,
+  "rejected": {
+    "bms_post_tag": 2,
+    "bms_follow": 2
+  },
+  "repaired": {
+    "duplicate_or_missing_email": 1
+  },
+  "repeatImports": {
+    "runs": 2,
+    "newMappedRecords": 0,
+    "sameMappings": true,
+    "sameCounts": true
+  },
+  "integrity": {
+    "orphanPosts": 0,
+    "orphanTagLinks": 0,
+    "invalidFollows": 0,
+    "incorrectTagCounters": 0,
+    "inheritedTokens": 0,
+    "stagingSchemas": 0
+  },
+  "backendTests": {
+    "authority_management_backend": {
+      "run": 37,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "liushao_community_backend": {
+      "run": 69,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    }
+  },
+  "liveChecks": [
+    "all 12 migrated posts, author/tag/search filters, public profiles, home content",
+    "management proxy reads migrated users/posts/tips/promotions",
+    "registration/login, follow feed, likes/bookmarks/comments on migrated posts",
+    "draft publish, auto-increment IDs, author edit/403, admin hide/restore, deletion"
+  ],
+  "temporaryBusinessDataCleaned": true
+}

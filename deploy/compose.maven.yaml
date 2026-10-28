@@ -1,0 +1,15 @@
+services:
+  admin-api:
+    build:
+      secrets:
+        - source: maven_settings
+          target: maven_settings
+  community-api:
+    build:
+      secrets:
+        - source: maven_settings
+          target: maven_settings
+
+secrets:
+  maven_settings:
+    file: ${MAVEN_SETTINGS_FILE:?Set MAVEN_SETTINGS_FILE to the absolute path of your Maven settings.xml}

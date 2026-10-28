@@ -1,0 +1,170 @@
+{
+  "schemaVersion": 1,
+  "runId": "20261019t064717z-7786a4d6",
+  "description": "双库与上传图片的联合备份和全新本机项目恢复演练；仅保存脱敏元数据。",
+  "command": "python3 scripts/test-backup-restore.py --delete-backups",
+  "runnerExitCode": 0,
+  "startedAt": "2026-10-19T06:47:17.061174+00:00",
+  "durationSeconds": 708.91,
+  "python": "3.11.2",
+  "platform": "Linux",
+  "passed": true,
+  "checks": [
+    {
+      "name": "real_source_data_and_images",
+      "status": "passed"
+    },
+    {
+      "name": "coordinated_snapshot_and_source_resumed",
+      "status": "passed"
+    },
+    {
+      "name": "corrupt_bundle_rejected_before_provisioning",
+      "status": "passed"
+    },
+    {
+      "name": "fresh_credentials_and_both_flyway_histories",
+      "status": "passed"
+    },
+    {
+      "name": "unicode_images_social_data_ownership_and_session_revocation",
+      "status": "passed"
+    },
+    {
+      "name": "uid_10001_upload_write_and_database_account_isolation",
+      "status": "passed"
+    },
+    {
+      "name": "enabled_database_event_restored_but_never_executed",
+      "status": "passed"
+    },
+    {
+      "name": "existing_target_rejected_without_modification",
+      "status": "passed"
+    },
+    {
+      "name": "missing_upload_rejected_without_bundle_and_source_resumed",
+      "status": "passed"
+    }
+  ],
+  "unitTests": {
+    "command": "python3 -m unittest discover -s scripts -p test_backup_bundle.py -v",
+    "tests": 24,
+    "failures": 0,
+    "errors": 0,
+    "exitCode": 0
+  },
+  "sourceRevisions": {
+    "authority_management_backend": {
+      "commit": "89679a75507c121365a6283375eb2fdd6465f082",
+      "dirty": false
+    },
+    "authority_management_frontend": {
+      "commit": "ab9fae2871b5e34ad4fb030e086df5700cda2e03",
+      "dirty": false
+    },
+    "liushao_community_backend": {
+      "commit": "0a0def684df69de7c9496c328b521497af37c306",
+      "dirty": false
+    },
+    "liushao_community_frontend": {
+      "commit": "13916b219bc2f7ea053edfb8c3fb8b2d84b1908b",
+      "dirty": false
+    }
+  },
+  "snapshot": {
+    "schemaVersion": 1,
+    "createdAt": "2026-10-19T06:52:18.513068+00:00",
+    "images": {
+      "mysql": "sha256:efb212ddf03576a6c0b02b8d364e6a46f21e628308a719db0b0450f8817c0517",
+      "redis": "sha256:f84b0c4678011602b9b98c227a4dcd5468bf8b088b02fdd4165cb7758bad8058",
+      "admin-api": "sha256:7264489d48bfc069bd7f1b0956a53e80cdb3291ed2467b18e5447c82ddfd17a4",
+      "community-api": "sha256:5ef228571457057f6ec0d7a5bd9b209f3be91a692e061477629872b9452101ad",
+      "admin-web": "sha256:53a0028d6df1862740c7664ba6da063dd88ffd5e6a8d4698b541fd423d8b043f",
+      "community-web": "sha256:9770ba90fae6d863e3bffcaac04a1271e58599421dfd15df0fcee280783179ac"
+    },
+    "source": {
+      "project": "liushao-backup-drill-20261019t064717z-7786a4d6-source",
+      "applications": {
+        "authority_management_backend": {
+          "commit": "89679a75507c121365a6283375eb2fdd6465f082",
+          "dirty": false
+        },
+        "authority_management_frontend": {
+          "commit": "ab9fae2871b5e34ad4fb030e086df5700cda2e03",
+          "dirty": false
+        },
+        "liushao_community_backend": {
+          "commit": "0a0def684df69de7c9496c328b521497af37c306",
+          "dirty": false
+        },
+        "liushao_community_frontend": {
+          "commit": "13916b219bc2f7ea053edfb8c3fb8b2d84b1908b",
+          "dirty": false
+        }
+      }
+    },
+    "mysql": {
+      "eventScheduler": "OFF"
+    },
+    "uploadFileCount": 2,
+    "uploadBytes": 148
+  },
+  "restoredImageSha256": {
+    "avatar": "6c8047da49f6aed1c904f86fb4ad9cb579a0125e67c48ca3696e5d5f6d7e53bb",
+    "post": "060ba9492239cd5cac6171ec9cce436b9a8eed439f2c00cbb1d44c6279f75149"
+  },
+  "backupInvocations": [
+    {
+      "action": "create",
+      "sourceSha256": "dd4c0724e3bd5eb67629f64d74fc368f2b770b10557342f5ad10cc6266ef1551"
+    },
+    {
+      "action": "verify",
+      "sourceSha256": "dd4c0724e3bd5eb67629f64d74fc368f2b770b10557342f5ad10cc6266ef1551"
+    },
+    {
+      "action": "verify",
+      "sourceSha256": "dd4c0724e3bd5eb67629f64d74fc368f2b770b10557342f5ad10cc6266ef1551"
+    },
+    {
+      "action": "restore",
+      "sourceSha256": "dd4c0724e3bd5eb67629f64d74fc368f2b770b10557342f5ad10cc6266ef1551"
+    },
+    {
+      "action": "restore",
+      "sourceSha256": "dd4c0724e3bd5eb67629f64d74fc368f2b770b10557342f5ad10cc6266ef1551"
+    },
+    {
+      "action": "restore",
+      "sourceSha256": "dd4c0724e3bd5eb67629f64d74fc368f2b770b10557342f5ad10cc6266ef1551"
+    },
+    {
+      "action": "create",
+      "sourceSha256": "dd4c0724e3bd5eb67629f64d74fc368f2b770b10557342f5ad10cc6266ef1551"
+    }
+  ],
+  "sourceSha256": {
+    "scripts/backup.py": "dd4c0724e3bd5eb67629f64d74fc368f2b770b10557342f5ad10cc6266ef1551",
+    "scripts/backup.sh": "0557f1623c1dd09ca60dd9fcad6c575202a769f55270819052e1432e5069e882",
+    "scripts/test-backup-restore.py": "fd7892ce85d06ca664e6c473448f998a15f647450baccb09b00146415800b1e9",
+    "scripts/test_backup_bundle.py": "f377ce0d584a3efdb9fd22209d3f966aff029b0344a07326661b696d0dcc39f6",
+    "scripts/init-deploy.py": "e475af36d81fa9a7470bba7042009e8f16f282f7c697d16bffff18b19e355db0",
+    "scripts/smoke-deploy.py": "82f412a7c6c89021c938c94434361ab2a77832c0fa077ce0af2a8e97c223e57a",
+    "compose.yaml": "e971ef693489d3f85b35b0701e16b1e4a66937fbca5e0e589b1db32ed07a5f3d"
+  },
+  "cleanup": {
+    "containersRemoved": true,
+    "volumesRemoved": true,
+    "networksRemoved": true,
+    "helpersRemoved": true,
+    "generatedApplicationImagesRemoved": true,
+    "privateCredentialsAndTestBackupsRemoved": true
+  },
+  "limitations": [
+    "Tested on one local Docker host; cross-host transfer and scheduled off-host retention were not exercised.",
+    "Database events remain disabled after restore and require review before enabling.",
+    "Application images must be retained or transferred separately using their recorded IDs.",
+    "No production or NAS data was read or modified."
+  ]
+}

@@ -5,6 +5,11 @@ spring:
     default: local
   application:
     name: liushao_community_backend
+  flyway:
+    table: flyway_schema_history
+    # The admin app may initialize the shared schema first. Version 0 still runs V1.
+    baseline-on-migrate: true
+    baseline-version: 0
   mail:
     host: ${SMTP_HOST:}
     port: ${SMTP_PORT:587}

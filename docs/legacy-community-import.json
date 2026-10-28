@@ -1,0 +1,382 @@
+{
+  "completedAt": "2026-10-28T06:16:26.906480+00:00",
+  "source": "liushao_community.sql",
+  "sourceSha256": "dbabc9f9a489f48285de7800dd38b40db62328a521fbc442119a088d948b49e5",
+  "sourceOffset": "+08:00",
+  "sourceCounts": {
+    "ums_user": 2,
+    "bms_tag": 14,
+    "bms_post": 12,
+    "bms_post_tag": 16,
+    "bms_comment": 0,
+    "bms_billboard": 2,
+    "bms_tip": 20,
+    "bms_promotion": 3,
+    "bms_follow": 3
+  },
+  "inserted": {
+    "ums_user": 2,
+    "bms_tag": 14,
+    "bms_post": 12,
+    "bms_post_tag": 14,
+    "bms_comment": 0,
+    "bms_billboard": 2,
+    "bms_tip": 20,
+    "bms_promotion": 3
+  },
+  "totals": {
+    "ums_user": 2,
+    "bms_tag": 14,
+    "bms_post": 12,
+    "bms_post_tag": 14,
+    "bms_comment": 0,
+    "bms_billboard": 3,
+    "bms_tip": 21,
+    "bms_promotion": 3,
+    "ums_follow": 1
+  },
+  "rejected": {
+    "bms_post_tag": 2,
+    "bms_follow": 2
+  },
+  "repaired": {
+    "duplicate_or_missing_email": 1
+  },
+  "idMappings": [
+    {
+      "resource": "bms_billboard",
+      "legacyId": "2",
+      "currentId": 2
+    },
+    {
+      "resource": "bms_billboard",
+      "legacyId": "4",
+      "currentId": 3
+    },
+    {
+      "resource": "bms_post",
+      "legacyId": "1332650453142827009",
+      "currentId": 1
+    },
+    {
+      "resource": "bms_post",
+      "legacyId": "1332681213400817665",
+      "currentId": 2
+    },
+    {
+      "resource": "bms_post",
+      "legacyId": "1332682473151635458",
+      "currentId": 3
+    },
+    {
+      "resource": "bms_post",
+      "legacyId": "1333432347031646209",
+      "currentId": 4
+    },
+    {
+      "resource": "bms_post",
+      "legacyId": "1333447953558765569",
+      "currentId": 5
+    },
+    {
+      "resource": "bms_post",
+      "legacyId": "1333668258587750401",
+      "currentId": 6
+    },
+    {
+      "resource": "bms_post",
+      "legacyId": "1333676096156528641",
+      "currentId": 7
+    },
+    {
+      "resource": "bms_post",
+      "legacyId": "1333695976536748034",
+      "currentId": 8
+    },
+    {
+      "resource": "bms_post",
+      "legacyId": "1334481725322297346",
+      "currentId": 9
+    },
+    {
+      "resource": "bms_post",
+      "legacyId": "1335149981733449729",
+      "currentId": 10
+    },
+    {
+      "resource": "bms_post",
+      "legacyId": "1349362401438392322",
+      "currentId": 11
+    },
+    {
+      "resource": "bms_post",
+      "legacyId": "1349631541260595202",
+      "currentId": 12
+    },
+    {
+      "resource": "bms_post_tag",
+      "legacyId": "36",
+      "currentId": 1
+    },
+    {
+      "resource": "bms_post_tag",
+      "legacyId": "37",
+      "currentId": 2
+    },
+    {
+      "resource": "bms_post_tag",
+      "legacyId": "38",
+      "currentId": 3
+    },
+    {
+      "resource": "bms_post_tag",
+      "legacyId": "39",
+      "currentId": 4
+    },
+    {
+      "resource": "bms_post_tag",
+      "legacyId": "42",
+      "currentId": 5
+    },
+    {
+      "resource": "bms_post_tag",
+      "legacyId": "43",
+      "currentId": 6
+    },
+    {
+      "resource": "bms_post_tag",
+      "legacyId": "44",
+      "currentId": 7
+    },
+    {
+      "resource": "bms_post_tag",
+      "legacyId": "45",
+      "currentId": 8
+    },
+    {
+      "resource": "bms_post_tag",
+      "legacyId": "46",
+      "currentId": 9
+    },
+    {
+      "resource": "bms_post_tag",
+      "legacyId": "47",
+      "currentId": 10
+    },
+    {
+      "resource": "bms_post_tag",
+      "legacyId": "48",
+      "currentId": 11
+    },
+    {
+      "resource": "bms_post_tag",
+      "legacyId": "49",
+      "currentId": 12
+    },
+    {
+      "resource": "bms_post_tag",
+      "legacyId": "50",
+      "currentId": 13
+    },
+    {
+      "resource": "bms_post_tag",
+      "legacyId": "51",
+      "currentId": 14
+    },
+    {
+      "resource": "bms_promotion",
+      "legacyId": "1",
+      "currentId": 1
+    },
+    {
+      "resource": "bms_promotion",
+      "legacyId": "2",
+      "currentId": 2
+    },
+    {
+      "resource": "bms_promotion",
+      "legacyId": "3",
+      "currentId": 3
+    },
+    {
+      "resource": "bms_tag",
+      "legacyId": "1332650453377708034",
+      "currentId": 1
+    },
+    {
+      "resource": "bms_tag",
+      "legacyId": "1332681213568589825",
+      "currentId": 2
+    },
+    {
+      "resource": "bms_tag",
+      "legacyId": "1332681213631504385",
+      "currentId": 3
+    },
+    {
+      "resource": "bms_tag",
+      "legacyId": "1332682473218744321",
+      "currentId": 4
+    },
+    {
+      "resource": "bms_tag",
+      "legacyId": "1332913064463794178",
+      "currentId": 5
+    },
+    {
+      "resource": "bms_tag",
+      "legacyId": "1332913064530903041",
+      "currentId": 6
+    },
+    {
+      "resource": "bms_tag",
+      "legacyId": "1333432347107143681",
+      "currentId": 7
+    },
+    {
+      "resource": "bms_tag",
+      "legacyId": "1333432347107143682",
+      "currentId": 8
+    },
+    {
+      "resource": "bms_tag",
+      "legacyId": "1333447953697177602",
+      "currentId": 9
+    },
+    {
+      "resource": "bms_tag",
+      "legacyId": "1333676096320106498",
+      "currentId": 10
+    },
+    {
+      "resource": "bms_tag",
+      "legacyId": "1333695976742268930",
+      "currentId": 11
+    },
+    {
+      "resource": "bms_tag",
+      "legacyId": "1334481725519429634",
+      "currentId": 12
+    },
+    {
+      "resource": "bms_tag",
+      "legacyId": "1349362401597775874",
+      "currentId": 13
+    },
+    {
+      "resource": "bms_tag",
+      "legacyId": "1349631541306732545",
+      "currentId": 14
+    },
+    {
+      "resource": "bms_tip",
+      "legacyId": "1",
+      "currentId": 2
+    },
+    {
+      "resource": "bms_tip",
+      "legacyId": "10",
+      "currentId": 11
+    },
+    {
+      "resource": "bms_tip",
+      "legacyId": "11",
+      "currentId": 12
+    },
+    {
+      "resource": "bms_tip",
+      "legacyId": "12",
+      "currentId": 13
+    },
+    {
+      "resource": "bms_tip",
+      "legacyId": "13",
+      "currentId": 14
+    },
+    {
+      "resource": "bms_tip",
+      "legacyId": "14",
+      "currentId": 15
+    },
+    {
+      "resource": "bms_tip",
+      "legacyId": "15",
+      "currentId": 16
+    },
+    {
+      "resource": "bms_tip",
+      "legacyId": "18",
+      "currentId": 17
+    },
+    {
+      "resource": "bms_tip",
+      "legacyId": "19",
+      "currentId": 18
+    },
+    {
+      "resource": "bms_tip",
+      "legacyId": "2",
+      "currentId": 3
+    },
+    {
+      "resource": "bms_tip",
+      "legacyId": "20",
+      "currentId": 19
+    },
+    {
+      "resource": "bms_tip",
+      "legacyId": "21",
+      "currentId": 20
+    },
+    {
+      "resource": "bms_tip",
+      "legacyId": "22",
+      "currentId": 21
+    },
+    {
+      "resource": "bms_tip",
+      "legacyId": "3",
+      "currentId": 4
+    },
+    {
+      "resource": "bms_tip",
+      "legacyId": "4",
+      "currentId": 5
+    },
+    {
+      "resource": "bms_tip",
+      "legacyId": "5",
+      "currentId": 6
+    },
+    {
+      "resource": "bms_tip",
+      "legacyId": "6",
+      "currentId": 7
+    },
+    {
+      "resource": "bms_tip",
+      "legacyId": "7",
+      "currentId": 8
+    },
+    {
+      "resource": "bms_tip",
+      "legacyId": "8",
+      "currentId": 9
+    },
+    {
+      "resource": "bms_tip",
+      "legacyId": "9",
+      "currentId": 10
+    },
+    {
+      "resource": "ums_user",
+      "legacyId": "1349290158897311745",
+      "currentId": 1
+    },
+    {
+      "resource": "ums_user",
+      "legacyId": "1349618748226658305",
+      "currentId": 2
+    }
+  ]
+}

@@ -4,7 +4,7 @@ JDK 21 + Spring Boot 3.5.16 + Spring Data JPA/Hibernate 6 + Flyway + MySQL + Red
 
 ## 启动
 
-准备独立的空 MySQL 8 数据库和 Redis，然后在本项目目录执行：
+准备与管理后端共用的 MySQL 8 数据库 `liushao_community` 和 Redis，然后在本项目目录执行：
 
 ```bash
 cp .env.example .env.local
@@ -14,9 +14,19 @@ cp .env.example .env.local
 
 默认端口 8080。包装脚本使用 `/opt/java/jdk21`，支持 `JAVA_HOME` 覆盖；首次下载并校验 Maven 3.9.11。未指定 profile 时默认启用 `local`，读取 `.env.local`（Java properties，值不用引号），环境变量优先。JWT 密钥至少 64 字节，可以用 `openssl rand -hex 64` 生成。
 
-Flyway V1 自动创建 7 张基础业务表和版本历史表，初始化欢迎公告和提示语；V2 增加互动与运营，V3 增加邮件验证码和图片记录，V4 增加私有草稿。Hibernate 使用 `validate` 检查实体与表结构。新库不要导入旧 `liushao_community.sql`：历史 SQL 使用 varchar 雪花 ID，与当前整数自增模型不兼容；已有数据需另行迁移，不能直接 baseline 或清空。
+Flyway V1 自动创建 7 张基础业务表和版本历史表，初始化欢迎公告和提示语；V2 增加互动与运营，V3 增加邮件验证码和图片记录，V4 增加私有草稿，V5 保存历史数据 ID 映射。社区迁移历史保存在 `flyway_schema_history`，管理端使用 `flyway_admin_schema_history`；新环境允许从版本 0 建立历史，管理端先建表时仍执行社区 V1。Hibernate 使用 `validate` 检查实体与表结构。
 
-NAS 开发环境使用 `liushao_community` 数据库、Redis DB 13，与管理端隔离。实际凭据只在被 Git 忽略的本地配置中。社区账号通过注册页面创建，不复用后台管理员。
+旧 `liushao_community.sql` 使用 varchar 雪花 ID，不能直接导入当前整数自增模型。2026-10-28 已通过下述转换工具将仓库历史数据导入 NAS 共享测试库；原密码哈希、正文和有效关系已保留。
+
+```bash
+./mvnw -DskipTests package
+# 先启动当前社区后端，使目标库完成 Flyway V5，再执行：
+python3 scripts/migrate_legacy.py
+```
+
+工具读取 `.env.local`，通过可执行 JAR 内的 JDBC 驱动连接 `liushao_community`；需要 Python 3、JDK 21，以及创建和删除临时数据库的权限。历史 SQL 在随机临时数据库中恢复，转换写入采用事务，结束后删除临时库；映射表用于避免重复导入。默认将旧 DATETIME 视为 `+08:00` 并转为 UTC，可用 `--source-offset` 指定来源时区偏移。支持 `--source`、`--env-file`、`--report`；结果及 ID 映射默认写入本项目 `.artifacts/legacy-community-migration/import.json`。重复邮箱改为 `legacy-旧ID@example.invalid`，邮箱均标记未验证，旧 token 不继承；跳过缺失对象的关联并重新计算计数。不要跳过 Flyway V1 或清空已有表。
+
+NAS 开发环境与管理端共用 `liushao_community` 数据库。社区 Redis 使用 DB 13，管理端使用 DB 12。实际凭据只在被 Git 忽略的本地配置中。社区账号通过注册页面创建，不复用后台管理员。
 
 ## 当前功能与接口
 
@@ -57,7 +67,7 @@ Redis 使用 `liushao:community:` 前缀保存登录会话与原子限流计数�
 ./mvnw verify
 ```
 
-当前 66 项常规测试全部通过，覆盖健康探针、生产配置、社会互动/运营、邮箱与图片上传，以及精华、关注动态和私有草稿。测试使用 Flyway 初始化的 H2 与认证状态替身，不连接 NAS。覆盖登录/JWT/过滤器、联表分页、注册冲突、帖子全流程、越权、标签计数、旧版本冲突、搜索边界、公开资料隐私、改密/退出、限流和 CORS，以及真实事务锁等待下的账号安全状态一致性。新增草稿场景验证账号隔离、过期版本拒绝、发布与移除的事务、原帖冲突及审核状态保留和草稿数量限制。
+当前 68 项常规测试全部通过，覆盖健康探针、生产配置、社会互动/运营、邮箱与图片上传，以及精华、关注动态和私有草稿。测试使用 Flyway 初始化的 H2 与认证状态替身，不连接 NAS。覆盖登录/JWT/过滤器、联表分页、注册冲突、帖子全流程、越权、标签计数、旧版本冲突、搜索边界、公开资料隐私、改密/退出、限流和 CORS，以及真实事务锁等待下的账号安全状态一致性。运营搜索覆盖提示语正文/署名、推广标题/描述，并验证分页、大小写及特殊字符匹配。草稿场景验证账号隔离、过期版本拒绝、发布与移除的事务、原帖冲突及审核状态保留和草稿数量限制。
 
 另有 4 项真实 MySQL 时区回归，指定 `MYSQL_TIME_ZONE_TEST_URL`、`MYSQL_TIME_ZONE_TEST_USERNAME`、`MYSQL_TIME_ZONE_TEST_PASSWORD` 后运行 `./mvnw -Dtest=MysqlTimeZoneIntegrationTest test`。URL 指向隔离测试库且不要添加时区参数；测试通过当前连接的临时表，覆盖 UTC/上海 JVM 和新旧连接 URL，验证数据库默认时间、Java 时间及数据库 epoch 一致；不修改业务记录。未提供配置时跳过这一组。
 
@@ -112,3 +122,12 @@ Docker 每 30 秒检查 readiness，启动宽限期 90 秒。普通 `./mvnw veri
 `POST /uploads/image` 需要登录，以 multipart 字段 `file` 接收不超过 4 MB 的 PNG/JPEG，解码重编码为 PNG 后返回公开地址；单边不超过 8192 像素、总像素不超过 2000 万，处理后文件不超过 8 MB。`POST /ums/user/avatar` 只能使用当前用户上传的地址。`GET /uploads/{filename}` 公开读取已经登记的图片。
 
 图片目录由 `UPLOAD_DIRECTORY` 指定，容器应持久挂载 `/app/data/uploads`，目录需要 UID/GID `10001:10001` 可写。数据库备份仅包含图片记录，备份恢复还需保存并恢复上传目录；SMTP 不参与 readiness，发送失败由对应接口返回 503。
+
+## 文档与工作区工具
+
+- [当前 NAS 数据库与 Redis](docs/INFRASTRUCTURE.md)
+- [历史社区迁移及 ID 映射](docs/legacy-community-migration.md)
+- [四项目部署、备份与恢复](deploy/README.md)
+- [历史实施记录](docs/archive/WORKSPACE_HISTORY.md)
+
+四个仓库保持同级时，可从共同父目录执行 `./liushao_community_backend/scripts/verify-workspace.sh` 完成两套前端构建与两套后端测试。部署私密配置位于 `deploy/.env`，运行报告和备份由本仓库忽略规则排除。

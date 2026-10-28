@@ -14,6 +14,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.*;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -402,6 +404,37 @@ class CommunitySocialIntegrationTest {
     assertThat(audit.path("content").get(0).path("actor").asText()).isEqualTo("运营管理员");
     var users = ok(admin(get("/internal/admin/users"), null));
     assertThat(users.toString()).doesNotContain("password", "authVersion", "token");
+  }
+
+  @ParameterizedTest
+  @CsvSource({"tips,content,author", "promotions,title,description"})
+  void operationsCatalogSearchIncludesContentAndSecondaryFields(
+      String kind, String primaryField, String secondaryField) throws Exception {
+    String path = "/internal/admin/" + kind;
+    var input = new LinkedHashMap<String, Object>();
+    input.put(primaryField, "正文 Mixed_%! 内容");
+    input.put(secondaryField, "其他字段");
+    if (kind.equals("tips")) input.put("enabled", true);
+    else input.put("link", "https://example.com/");
+    long primaryMatch = ok(admin(post(path), input)).path("id").asLong();
+    input.put(primaryField, "普通内容");
+    input.put(secondaryField, "署名或描述 mIxEd_%!");
+    long secondaryMatch = ok(admin(post(path), input)).path("id").asLong();
+    input.put(primaryField, "mixedXY!%");
+    input.put(secondaryField, "mixedXY!%");
+    ok(admin(post(path), input));
+
+    var first = ok(admin(get(path).param("query", "  MIXED_%!  ").param("size", "1"), null));
+    assertThat(first.path("totalElements").asInt()).isEqualTo(2);
+    assertThat(first.path("totalPages").asInt()).isEqualTo(2);
+    assertThat(first.path("content").size()).isEqualTo(1);
+    assertThat(first.path("content").get(0).path("id").asLong()).isEqualTo(secondaryMatch);
+    var second =
+        ok(admin(
+            get(path).param("query", "  MIXED_%!  ").param("size", "1").param("pageNo", "2"), null));
+    assertThat(second.path("totalElements").asInt()).isEqualTo(2);
+    assertThat(second.path("content").size()).isEqualTo(1);
+    assertThat(second.path("content").get(0).path("id").asLong()).isEqualTo(primaryMatch);
   }
 
   @Test

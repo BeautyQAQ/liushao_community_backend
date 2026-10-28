@@ -4,8 +4,13 @@ WORKDIR /build
 COPY pom.xml ./
 COPY src ./src
 RUN --mount=type=cache,target=/root/.m2,sharing=locked \
-    --mount=type=secret,id=maven_settings,target=/root/.m2/settings.xml \
-    mvn --batch-mode --no-transfer-progress -DskipTests package
+    --mount=type=secret,id=maven_settings,target=/tmp/maven-settings.xml \
+    if [ -s /tmp/maven-settings.xml ]; then \
+      build_maven_settings=/tmp/maven-settings.xml; \
+    else \
+      build_maven_settings=/usr/share/maven/conf/settings.xml; \
+    fi; \
+    mvn --settings "$build_maven_settings" --batch-mode --no-transfer-progress -DskipTests package
 
 FROM eclipse-temurin:21-jre-jammy AS runtime
 RUN command -v curl >/dev/null \
