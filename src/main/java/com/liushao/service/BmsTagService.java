@@ -54,17 +54,17 @@ public class BmsTagService {
         .sorted()
         .forEach(
             name -> {
-              BmsTag tag = tags.findByName(name);
-              if (tag == null) {
-                tag = new BmsTag();
-                tag.setName(name);
-                tag = tags.saveAndFlush(tag);
-              }
+              // The unique name arbitrates concurrent creation without aborting either post.
+              data.db.update(
+                  "INSERT INTO bms_tag(name) VALUES(?) ON DUPLICATE KEY UPDATE name=name", name);
+              // A locking read sees the winning row even in a MySQL repeatable-read transaction.
+              int tagId = CommunityData.id(
+                  data.one("SELECT id FROM bms_tag WHERE name=? FOR UPDATE", name), "id");
               var link = new BmsTopicTag();
-              link.setTagId(tag.getId());
+              link.setTagId(tagId);
               link.setTopicId(postId);
               links.save(link);
-              tags.adjustCount(tag.getId(), 1);
+              tags.adjustCount(tagId, 1);
             });
   }
 }

@@ -112,7 +112,8 @@ public class BmsPostService {
     var post = owned(id, user);
     if (dto.getVersion() == null) throw new ApiException(400, "缺少帖子版本，请刷新后重试");
     if (!dto.getVersion().equals(post.getVersion())) throw new ApiException(409, "帖子已被修改，请刷新后重试");
-    if (!"PUBLISHED".equals(post.getModerationStatus())) post.setModerationStatus("PENDING");
+    post.setModerationStatus("PENDING");
+    post.setModerationReason(null);
     post.setTitle(dto.getTitle().trim());
     post.setContent(dto.getContent());
     post.setModifyTime(new Date());

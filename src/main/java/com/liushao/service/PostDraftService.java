@@ -42,9 +42,10 @@ public class PostDraftService {
 
   @Transactional
   public PostDraft save(UUID id, UmsUser user, DraftRequests.Save input) {
-    // Serialize creations for the account, including concurrent requests for the same new UUID.
+    // Every draft mutation locks its owner first, including concurrent saves of the same UUID.
     lockOwner(user);
-    var existing = data.rows("SELECT * FROM bms_draft WHERE id=? FOR UPDATE", id.toString());
+    // Do not lock an absent UUID: MySQL gap locks can deadlock unrelated authors' inserts.
+    var existing = data.rows("SELECT * FROM bms_draft WHERE id=?", id.toString());
     if (!existing.isEmpty() && CommunityData.id(existing.getFirst(), "userId") != user.getId())
       throw new ApiException(404, "草稿不存在");
     if ((input.postId() == null) != (input.postVersion() == null))
@@ -59,11 +60,16 @@ public class PostDraftService {
       if (input.version() != 0) throw new ApiException(409, "草稿已删除或已发布，请保留内容后刷新");
       if (data.count("SELECT COUNT(*) FROM bms_draft WHERE user_id=?", user.getId()) >= 100)
         throw new ApiException(400, "草稿箱已满，请先发布或删除部分草稿");
-      data.db.update(
-          "INSERT INTO bms_draft(id,user_id,post_id,post_version,title,content,tags)"
-              + " VALUES(?,?,?,?,?,?,?)",
-          id.toString(), user.getId(), input.postId(), input.postVersion(), input.title(),
-          input.content(), tags);
+      try {
+        data.db.update(
+            "INSERT INTO bms_draft(id,user_id,post_id,post_version,title,content,tags)"
+                + " VALUES(?,?,?,?,?,?,?)",
+            id.toString(), user.getId(), input.postId(), input.postVersion(), input.title(),
+            input.content(), tags);
+      } catch (org.springframework.dao.DuplicateKeyException collision) {
+        // The owner lock serializes this account; only another account can claim this UUID.
+        throw new ApiException(404, "草稿不存在");
+      }
     } else {
       var current = draft(existing.getFirst());
       checkVersion(current, input.version());

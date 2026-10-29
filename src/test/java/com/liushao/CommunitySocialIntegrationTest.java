@@ -119,6 +119,13 @@ class CommunitySocialIntegrationTest {
   }
 
   JsonNode createPost(String token, String title) throws Exception {
+    var submitted = submitPost(token, title);
+    // Seed reviewed content for social tests without introducing unrelated review notifications.
+    db.update("UPDATE bms_post SET moderation_status='PUBLISHED' WHERE id=?", submitted.path("id").asInt());
+    return ok(call(get("/post/" + submitted.path("id").asInt()), null, null));
+  }
+
+  JsonNode submitPost(String token, String title) throws Exception {
     return ok(
         call(
             post("/post/add"),
@@ -137,7 +144,85 @@ class CommunitySocialIntegrationTest {
     ok(
         admin(
             put("/internal/admin/posts/" + id + "/moderation"),
-            Map.of("status", status, "top", true, "essence", true, "reason", "内容复核")));
+            Map.of("status", status, "top", true, "essence", true, "reason", "内容复核",
+                "version", db.queryForObject("SELECT version FROM bms_post WHERE id=?", Long.class, id))));
+  }
+
+  @Test
+  void newPostsAndPublishedEditsRequireReviewAcrossPublicRoutes() throws Exception {
+    String alice = user("alice"), bob = user("bob");
+    var submitted = submitPost(alice, "review_required");
+    int id = submitted.path("id").asInt();
+    assertThat(submitted.path("status").asText()).isEqualTo("PENDING");
+    ok(call(post("/users/alice/follow"), null, bob));
+    for (String route : List.of("/post/" + id, "/post/" + id + "/comments"))
+      call(get(route), null, null).andExpect(status().isNotFound());
+    call(post("/post/" + id + "/like"), null, bob).andExpect(status().isNotFound());
+    assertThat(ok(call(get("/post/list?query=review_required"), null, null)).path("totalElements").asInt()).isZero();
+    assertThat(ok(call(get("/me/feed"), null, bob)).path("totalElements").asInt()).isZero();
+    assertThat(ok(call(get("/tag/list"), null, null))).isEmpty();
+    assertThat(ok(call(get("/me/posts/" + id), null, alice)).path("status").asText()).isEqualTo("PENDING");
+    call(get("/me/posts/" + id), null, bob).andExpect(status().isForbidden());
+
+    moderation(id, "PUBLISHED");
+    ok(call(post("/post/" + id + "/bookmark"), null, bob));
+    var reviewed = ok(call(get("/me/posts/" + id), null, alice));
+    var edited = ok(call(put("/post/" + id), Map.of("title", "review_required", "content", "修改后也需要审核",
+        "tags", List.of("social"), "version", reviewed.path("version").asLong()), alice));
+    assertThat(edited.path("status").asText()).isEqualTo("PENDING");
+    assertThat(edited.path("moderationReason").isNull()).isTrue();
+    call(get("/post/" + id), null, null).andExpect(status().isNotFound());
+    assertThat(ok(call(get("/post/list?query=review_required"), null, null)).path("totalElements").asInt()).isZero();
+    assertThat(ok(call(get("/me/bookmarks"), null, bob)).path("totalElements").asInt()).isZero();
+    assertThat(ok(call(get("/me/feed"), null, bob)).path("totalElements").asInt()).isZero();
+    assertThat(ok(call(get("/tag/list"), null, null))).isEmpty();
+    moderation(id, "PUBLISHED");
+    assertThat(ok(call(get("/post/" + id), null, null)).path("content").asText()).isEqualTo("修改后也需要审核");
+    assertThat(ok(call(get("/me/bookmarks"), null, bob)).path("totalElements").asInt()).isEqualTo(1);
+  }
+
+  @Test
+  void staleReviewsCannotApproveChangedContentOrOverwriteAnotherReview() throws Exception {
+    String alice = user("alice");
+    int id = submitPost(alice, "review_version").path("id").asInt();
+    var viewed = ok(admin(get("/internal/admin/posts/" + id), null));
+    var edited = ok(call(put("/post/" + id), Map.of("title", "review_version", "content", "尚未看过的新正文",
+        "tags", List.of("social"), "version", viewed.path("version").asLong()), alice));
+    long audits = db.queryForObject("SELECT COUNT(*) FROM community_audit", Long.class);
+    long notices = db.queryForObject("SELECT COUNT(*) FROM ums_notification", Long.class);
+    var stale = Map.of("status", "PUBLISHED", "top", true, "essence", true, "reason", "旧页面审核",
+        "version", viewed.path("version").asLong());
+    admin(put("/internal/admin/posts/" + id + "/moderation"), stale).andExpect(status().isConflict());
+    var current = ok(admin(get("/internal/admin/posts/" + id), null));
+    assertThat(current.path("status").asText()).isEqualTo("PENDING");
+    assertThat(current.path("version").asLong()).isEqualTo(edited.path("version").asLong());
+    assertThat(current.path("top").asBoolean()).isFalse();
+    assertThat(current.path("essence").asBoolean()).isFalse();
+    assertThat(db.queryForObject("SELECT COUNT(*) FROM community_audit", Long.class)).isEqualTo(audits);
+    assertThat(db.queryForObject("SELECT COUNT(*) FROM ums_notification", Long.class)).isEqualTo(notices);
+    call(get("/post/" + id), null, null).andExpect(status().isNotFound());
+    admin(put("/internal/admin/posts/" + id + "/moderation"),
+        Map.of("status", "PUBLISHED", "top", false, "essence", false, "reason", "缺少版本"))
+        .andExpect(status().isBadRequest());
+    moderation(id, "PUBLISHED");
+    var outdated = Map.of("status", "HIDDEN", "top", false, "essence", false, "reason", "另一管理员的旧页面",
+        "version", current.path("version").asLong());
+    admin(put("/internal/admin/posts/" + id + "/moderation"), outdated).andExpect(status().isConflict());
+    assertThat(ok(call(get("/post/" + id), null, null)).path("status").asText()).isEqualTo("PUBLISHED");
+  }
+
+  @Test
+  void replyingToAReplyNotifiesItsAuthorBeforeFlatteningTheThread() throws Exception {
+    String alice = user("alice"), bob = user("bob");
+    int id = createPost(alice, "reply_target").path("id").asInt();
+    long root = comment(alice, id, "作者的根评论", null);
+    long reply = comment(bob, id, "读者的回复", root);
+    long answer = comment(alice, id, "回复实际读者", reply);
+    assertThat(db.queryForObject("SELECT parent_id FROM bms_comment WHERE id=?", Long.class, answer)).isEqualTo(root);
+    var notices = ok(call(get("/notifications"), null, bob)).path("content");
+    assertThat(notices.size()).isEqualTo(1);
+    assertThat(notices.get(0).path("type").asText()).isEqualTo("REPLY");
+    assertThat(notices.get(0).path("commentId").asLong()).isEqualTo(answer);
   }
 
   @Test

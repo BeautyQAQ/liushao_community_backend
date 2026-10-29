@@ -35,6 +35,7 @@ class BmsTopicDaoTest {
     user.setPassword("test-password");
     entityManager.persist(user);
     BmsPost post = new BmsPost();
+    post.setModerationStatus("PUBLISHED");
     post.setTitle("Hello");
     post.setContent("content");
     post.setUserId(user.getId());

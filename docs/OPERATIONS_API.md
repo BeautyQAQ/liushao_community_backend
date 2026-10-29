@@ -6,7 +6,7 @@ Server only: /internal/admin/**. Shared header X-Community-Admin-Key required (C
 - PUT /users/{id}/status `{status:boolean,reason:string(1..255)}` => user; disable/restore increments auth_version and audits.
 - GET /posts => page `{id,title,username,status,top,essence,comments,collects,likes,createTime,modifyTime}`; query title/author; optional `status=PUBLISHED|PENDING|HIDDEN`.
 - GET /posts/{id} => same +content,version,tags,moderationReason. tags is [{id,name,topicCount}], not strings.
-- PUT /posts/{id}/moderation `{status:PUBLISHED|PENDING|HIDDEN,top:boolean,essence:boolean,reason:string(1..255)}` => detail. Both flags required; no separate flag route. Bumps version, notifies author, audits.
+- PUT /posts/{id}/moderation `{version:integer>=0,status:PUBLISHED|PENDING|HIDDEN,top:boolean,essence:boolean,reason:string(1..255)}` => detail. Version must match the detail the reviewer inspected; stale reviews return 409 without changing status, flags, notifications or audit records. Reload and inspect the latest content before retrying. Both flags required; no separate flag route. A successful review bumps version, notifies the author and audits the reviewed version.
 - DELETE /posts/{id}?reason=... => null; require reason1..255, cascade comments/likes/bookmarks/notifications and tags counters; audits.
 - GET /comments => page `{id,postId,postTitle,parentId,username,content,visible,createdAt}`; query content/username; optional postId.
 - GET /comments/{id} => comment object.
@@ -19,3 +19,5 @@ Server only: /internal/admin/**. Shared header X-Community-Admin-Key required (C
 - GET /audit => page `{id,actor,action,resource,resourceId,detail,createdAt}`; query actor/action/resource. Immutable; detail contains action reason or safe changed-field summary, never credentials.
 
 Every mutation audits action and actor. Private member conversations/notifications never returned through moderation endpoints. No database reset endpoint.
+
+New posts and all author edits (including edits of published posts) enter PENDING. Only a version-checked operator review can make them PUBLISHED. Existing published posts retain their status when migration V6 changes the default for future inserts.

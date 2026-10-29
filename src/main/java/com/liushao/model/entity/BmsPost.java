@@ -49,7 +49,7 @@ public class BmsPost implements Serializable {
   private Integer likes = 0;
 
   @Column(length = 16, nullable = false)
-  private String moderationStatus = "PUBLISHED";
+  private String moderationStatus = "PENDING";
 
   private String moderationReason;
 

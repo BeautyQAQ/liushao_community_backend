@@ -11,7 +11,7 @@ Base frontend /api, backend paths below. Envelope `{code,message,data}`; paginat
 - GET /me/bookmarks?pageNo=1&size=20 => page of post summary `{id,title,username,alias,avatar,createTime,likes,comments,collects}`; hidden/disabled-author posts excluded.
 - Existing post detail now also returns `likes,comments,collects,top,essence,status,moderationReason` alongside existing fields. Public post status PUBLISHED only.
 - GET /me/posts?pageNo=1&size=20 => own post summary page including `{status,moderationReason}`; includes PENDING/HIDDEN.
-- GET /me/posts/{id} => own full post detail regardless of moderation state. Editing a nonpublic post puts it into PENDING; existing author PUT/DELETE /post/{id} retained.
+- GET /me/posts/{id} => own full post detail regardless of moderation state. New posts and every author edit enter PENDING and require operator review before public display; editing clears the previous moderation reason. Existing author PUT/DELETE /post/{id} retained.
 
 ## Follow
 - GET /users/{username}/relationship => `{following,followers,followingCount}` (authenticated; following is viewer→target bool).

@@ -119,10 +119,12 @@ public class CommunityOperationsService {
 
   @Transactional
   public Map<String, Object> moderate(
-      int id, String status, boolean top, boolean essence, String reason, String actor) {
+      int id, long version, String status, boolean top, boolean essence, String reason, String actor) {
     checkStatus(status);
     data.lockPost(id);
-    var old = data.one("SELECT user_id FROM bms_post WHERE id=?", id);
+    var old = data.one("SELECT user_id,version FROM bms_post WHERE id=?", id);
+    if (longId(old, "version") != version)
+      throw new ApiException(409, "帖子已被修改，请重新打开并查看最新内容后审核");
     data.db.update(
         "UPDATE bms_post SET"
             + " moderation_status=?,moderation_reason=?,top=?,essence=?,version=version+1,modify_time=CURRENT_TIMESTAMP"
@@ -139,7 +141,7 @@ public class CommunityOperationsService {
         "post.moderate",
         "post",
         id,
-        "status=" + status + ", top=" + top + ", essence=" + essence + "; " + reason);
+        "version=" + version + ", status=" + status + ", top=" + top + ", essence=" + essence + "; " + reason);
     return post(id);
   }
 

@@ -5,12 +5,20 @@ import static com.liushao.service.CommunityOperationsService.*;
 import com.liushao.common.api.ApiResult;
 import com.liushao.model.vo.PageResult;
 import com.liushao.service.CommunityOperationsService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.*;
 import java.util.Map;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/internal/admin")
 public class CommunityOperationsController {
+  public record Moderation(
+      @NotNull @Min(0) Long version,
+      @NotBlank @Pattern(regexp = "PUBLISHED|PENDING|HIDDEN") String status,
+      @NotNull Boolean top, @NotNull Boolean essence,
+      @NotBlank @Size(max = 255) String reason) {}
+
   private final CommunityOperationsService ops;
 
   public CommunityOperationsController(CommunityOperationsService ops) {
@@ -56,15 +64,16 @@ public class CommunityOperationsController {
   @PutMapping("/posts/{id}/moderation")
   public ApiResult<Map<String, Object>> moderate(
       @PathVariable int id,
-      @RequestBody Map<String, Object> input,
+      @Valid @RequestBody Moderation input,
       @RequestAttribute("internalAdminActor") String actor) {
     return ApiResult.success(
         ops.moderate(
             id,
-            text(input, "status", 16, true),
-            bool(input, "top"),
-            bool(input, "essence"),
-            text(input, "reason", 255, true),
+            input.version(),
+            input.status(),
+            input.top(),
+            input.essence(),
+            input.reason().trim(),
             actor));
   }
 

@@ -63,7 +63,10 @@ class ContentCreationIntegrationTest {
   }
 
   JsonNode topic(Account author, String title) throws Exception {
-    return ok(call(post("/post/add"), Map.of("title", title, "content", "中文正文 🌊", "tags", List.of("discovery")), author.token()));
+    var submitted = ok(call(post("/post/add"), Map.of("title", title, "content", "中文正文 🌊", "tags", List.of("discovery")), author.token()));
+    // Discovery fixtures represent already reviewed posts; review requests have separate coverage.
+    db.update("UPDATE bms_post SET moderation_status='PUBLISHED' WHERE id=?", submitted.path("id").asInt());
+    return submitted;
   }
 
   Map<String, Object> input(String title, String content, long version) {
@@ -162,6 +165,9 @@ class ContentCreationIntegrationTest {
     ok(call(put(path), input("正式标题", "## Markdown\n\n中文 🌊", 1), author.token()));
     var published = ok(call(post(path + "/publish"), Map.of("version", 2), author.token()));
     assertThat(published.path("title").asText()).isEqualTo("正式标题");
+    assertThat(published.path("status").asText()).isEqualTo("PENDING");
+    call(get("/post/" + published.path("id").asInt()), null, null).andExpect(status().isNotFound());
+    assertThat(ok(call(get("/post/list?query=正式标题"), null, null)).path("totalElements").asInt()).isZero();
     assertThat(published.path("tags").get(0).path("name").asText()).isEqualTo("草稿");
     call(get(path), null, author.token()).andExpect(status().isNotFound());
     call(post(path + "/publish"), Map.of("version", 2), author.token()).andExpect(status().isNotFound());
@@ -179,7 +185,7 @@ class ContentCreationIntegrationTest {
     ok(call(put("/post/" + original.path("id").asInt()), Map.of("title", "其他页面已修改", "content", "最新正文", "tags", List.of(), "version", original.path("version").asLong()), author.token()));
     call(post(path + "/publish"), Map.of("version", 1), author.token()).andExpect(status().isConflict());
     assertThat(ok(call(get(path), null, author.token())).path("content").asText()).isEqualTo("草稿正文");
-    assertThat(ok(call(get("/post/" + original.path("id").asInt()), null, null)).path("title").asText()).isEqualTo("其他页面已修改");
+    assertThat(ok(call(get("/me/posts/" + original.path("id").asInt()), null, author.token())).path("title").asText()).isEqualTo("其他页面已修改");
   }
 
   @Test

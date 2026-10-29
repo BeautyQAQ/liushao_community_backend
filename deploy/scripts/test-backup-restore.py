@@ -280,13 +280,16 @@ def main():
         content = "# 中文与 emoji 数据完整性 🌊🧪\n\n数据库与图片必须一起恢复。\n\n![帖子图片](" + post_url + ")\n"
         post = request(source_base, "/api/post/add", method="POST", token=author["token"],
                        data={"title": title, "content": content, "tags": ["恢复演练"]})
+        old_admin_token = admin_login(source_admin, source, config["ADMIN_USERNAME"], config["ADMIN_PASSWORD"])
+        post = request(source_admin, f"/api/community/posts/{post['id']}/moderation", method="PUT",
+                       token=old_admin_token, data={"status": "PUBLISHED", "top": False, "essence": False,
+                                                   "reason": "恢复演练内容审核", "version": post["version"]})
         comment_text = "恢复后仍存在的评论 🧩"
         request(source_base, f"/api/post/{post['id']}/comments", method="POST", token=reader["token"], data={"content": comment_text})
         request(source_base, f"/api/post/{post['id']}/like", method="POST", token=reader["token"])
         message_text = "联合快照内的私信 🔐 中文"
         request(source_base, "/api/messages", method="POST", token=reader["token"],
                 data={"username": author["username"], "content": message_text})
-        old_admin_token = admin_login(source_admin, source, config["ADMIN_USERNAME"], config["ADMIN_PASSWORD"])
         request(source_admin, "/api/sys/userInfo", token=old_admin_token)
         # Enabled SQL events must remain dormant during restore. Keeping the
         # source scheduler OFF also makes this probe deterministic without

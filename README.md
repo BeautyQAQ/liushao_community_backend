@@ -14,7 +14,7 @@ cp .env.example .env.local
 
 默认端口 8080。包装脚本使用 `/opt/java/jdk21`，支持 `JAVA_HOME` 覆盖；首次下载并校验 Maven 3.9.11。未指定 profile 时默认启用 `local`，读取 `.env.local`（Java properties，值不用引号），环境变量优先。JWT 密钥至少 64 字节，可以用 `openssl rand -hex 64` 生成。
 
-Flyway V1 自动创建 7 张基础业务表和版本历史表，初始化欢迎公告和提示语；V2 增加互动与运营，V3 增加邮件验证码和图片记录，V4 增加私有草稿，V5 保存历史数据 ID 映射。社区迁移历史保存在 `flyway_schema_history`，管理端使用 `flyway_admin_schema_history`；新环境允许从版本 0 建立历史，管理端先建表时仍执行社区 V1。Hibernate 使用 `validate` 检查实体与表结构。
+Flyway V1 自动创建 7 张基础业务表和版本历史表，初始化欢迎公告和提示语；V2 增加互动与运营，V3 增加邮件验证码和图片记录，V4 增加私有草稿，V5 保存历史数据 ID 映射，V6 将新帖默认状态改为待审核。社区迁移历史保存在 `flyway_schema_history`，管理端使用 `flyway_admin_schema_history`；新环境允许从版本 0 建立历史，管理端先建表时仍执行社区 V1。Hibernate 使用 `validate` 检查实体与表结构。
 
 旧 `liushao_community.sql` 使用 varchar 雪花 ID，不能直接导入当前整数自增模型。2026-10-28 已通过下述转换工具将仓库历史数据导入 NAS 共享测试库；原密码哈希、正文和有效关系已保留。
 
@@ -45,10 +45,10 @@ NAS 开发环境与管理端共用 `liushao_community` 数据库。社区 Redis 
 | `GET /me/feed` | 当前用户关注的作者的公开帖子，按发布时间排序；支持相同分页与筛选 |
 | `GET /me/drafts` | 当前用户的私有草稿列表，按更新时间排序 |
 | `GET/PUT/DELETE /me/drafts/{uuid}` | 读取、保存、删除本人草稿；写操作校验草稿 version |
-| `POST /me/drafts/{uuid}/publish` | 校验 version 后发布或更新原帖，同一事务移除草稿 |
+| `POST /me/drafts/{uuid}/publish` | 校验 version 后提交新帖或修改待审核，同一事务移除草稿 |
 | `GET /post/{id}` | 详情，浏览计数原子增加 |
-| `POST /post/add` | 发布 title/content/tags |
-| `PUT /post/{id}` | 作者编辑，额外传入详情返回的 version |
+| `POST /post/add` | 提交 title/content/tags，新帖进入待审核 |
+| `PUT /post/{id}` | 作者编辑，传入详情返回的 version，修改后重新待审核 |
 | `DELETE /post/{id}` | 作者删除，事务清理标签关联与计数 |
 | `GET /tag/list` | 最多 50 个有帖子的标签，按使用量排序 |
 | `GET /billboard/show,/tip/today,/promotion/all` | 首页公告、提示语和资源链接；空数据可正常返回 |
@@ -67,7 +67,7 @@ Redis 使用 `liushao:community:` 前缀保存登录会话与原子限流计数�
 ./mvnw verify
 ```
 
-当前 68 项常规测试全部通过，覆盖健康探针、生产配置、社会互动/运营、邮箱与图片上传，以及精华、关注动态和私有草稿。测试使用 Flyway 初始化的 H2 与认证状态替身，不连接 NAS。覆盖登录/JWT/过滤器、联表分页、注册冲突、帖子全流程、越权、标签计数、旧版本冲突、搜索边界、公开资料隐私、改密/退出、限流和 CORS，以及真实事务锁等待下的账号安全状态一致性。运营搜索覆盖提示语正文/署名、推广标题/描述，并验证分页、大小写及特殊字符匹配。草稿场景验证账号隔离、过期版本拒绝、发布与移除的事务、原帖冲突及审核状态保留和草稿数量限制。
+当前 71 项常规测试全部通过，覆盖健康探针、生产配置、社会互动/运营、邮箱与图片上传，以及精华、关注动态和私有草稿。测试使用 Flyway 初始化的 H2 与认证状态替身，不连接 NAS。覆盖登录/JWT/过滤器、联表分页、注册冲突、帖子全流程、越权、标签计数、旧版本冲突、搜索边界、公开资料隐私、改密/退出、限流和 CORS，以及真实事务锁等待下的账号安全状态一致性。运营搜索覆盖提示语正文/署名、推广标题/描述，并验证分页、大小写及特殊字符匹配。草稿场景验证账号隔离、过期版本拒绝、发布与移除的事务、原帖版本冲突、提交后待审和草稿数量限制。
 
 另有 4 项真实 MySQL 时区回归，指定 `MYSQL_TIME_ZONE_TEST_URL`、`MYSQL_TIME_ZONE_TEST_USERNAME`、`MYSQL_TIME_ZONE_TEST_PASSWORD` 后运行 `./mvnw -Dtest=MysqlTimeZoneIntegrationTest test`。URL 指向隔离测试库且不要添加时区参数；测试通过当前连接的临时表，覆盖 UTC/上海 JVM 和新旧连接 URL，验证数据库默认时间、Java 时间及数据库 epoch 一致；不修改业务记录。未提供配置时跳过这一组。
 
@@ -113,7 +113,7 @@ Docker 每 30 秒检查 readiness，启动宽限期 90 秒。普通 `./mvnw veri
 
 运营接口位于 `/internal/admin/**`，仅供管理后端调用。`COMMUNITY_ADMIN_KEY` 默认空时关闭内部访问，启用需两个后端配置相同的至少32字符强密钥；使用 `X-Community-Admin-Key` 和 URL 编码的 `X-Community-Admin-Actor` 请求头，不向浏览器发送共享密钥。管理后端负责细分权限校验，社区后端使用常量时间密钥比较并为每次变更保存操作人和审计记录。见 [运营接口](docs/OPERATIONS_API.md)。
 
-运营支持社区用户禁用/恢复，帖子审核/下架/置顶/加精，评论隐藏/恢复/删除，以及公告、每日提示、资源链接与标签维护。帖子状态为 `PUBLISHED`、`PENDING` 或 `HIDDEN`；公开列表、搜索、详情、标签、评论和收藏均过滤不可见帖子及禁用作者。作者可通过 `/me/posts` 查看全部个人帖子并修改非公开内容，修改后进入待审核状态。账号禁用/恢复会递增认证版本，旧令牌持续失效；评论与互动统计随账号可见性调整。已被帖子引用的标签不能直接删除。
+运营支持社区用户禁用/恢复，帖子审核/下架/置顶/加精，评论隐藏/恢复/删除，以及公告、每日提示、资源链接与标签维护。帖子状态为 `PUBLISHED`、`PENDING` 或 `HIDDEN`；公开列表、搜索、详情、标签、评论和收藏均过滤不可见帖子及禁用作者。新帖及所有作者修改（包括已发布文章）均进入待审核状态，审核通过后才公开。作者可通过 `/me/posts` 查看全部个人帖子。审核必须提交所查看内容的 `version`，旧版本返回 409 并要求重新查看；审核成功记录所审版本。Flyway V6 仅调整后续新帖的默认状态，已有公开文章保持原状态。账号禁用/恢复会递增认证版本，旧令牌持续失效；评论与互动统计随账号可见性调整。已被帖子引用的标签不能直接删除。
 
 ## 邮箱与图片
 

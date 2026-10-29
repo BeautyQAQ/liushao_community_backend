@@ -23,15 +23,17 @@ import org.springframework.test.web.servlet.*;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.transaction.annotation.Transactional;
 
-@SpringBootTest
+@SpringBootTest(properties = "COMMUNITY_ADMIN_KEY=review-test-key-0123456789-abcdefghijklmnopqrstuvwxyz")
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
 class CommunityApiIntegrationTest {
+  static final String ADMIN_KEY = "review-test-key-0123456789-abcdefghijklmnopqrstuvwxyz";
   @Autowired MockMvc mvc;
   @Autowired TestRedisHealthIndicator redisHealth;
   @Autowired ObjectMapper json;
   @Autowired JdbcTemplate db;
+  @jakarta.persistence.PersistenceContext jakarta.persistence.EntityManager entities;
   @MockitoBean CommunitySessions sessions;
   Map<String, String> active = new HashMap<>();
 
@@ -59,6 +61,8 @@ class CommunityApiIntegrationTest {
 
   ResultActions send(MockHttpServletRequestBuilder request, Object body, String token)
       throws Exception {
+    entities.flush();
+    entities.clear();
     if (body != null) request.contentType("application/json").content(json.writeValueAsBytes(body));
     if (token != null) request.header("Authorization", "Bearer " + token);
     return mvc.perform(request);
@@ -107,7 +111,14 @@ class CommunityApiIntegrationTest {
   }
 
   JsonNode create(String token, String title, String... tags) throws Exception {
-    return data(send(post("/post/add"), postInput(title, tags), token));
+    return approve(data(send(post("/post/add"), postInput(title, tags), token)));
+  }
+
+  JsonNode approve(JsonNode post) throws Exception {
+    return data(send(put("/internal/admin/posts/" + post.path("id").asInt() + "/moderation")
+        .header("X-Community-Admin-Key", ADMIN_KEY).header("X-Community-Admin-Actor", "reviewer"),
+        Map.of("status", "PUBLISHED", "top", false, "essence", false,
+            "reason", "测试内容审核通过", "version", post.path("version").asLong()), null));
   }
 
   @Test
@@ -181,6 +192,9 @@ class CommunityApiIntegrationTest {
     input.put("version", post.path("version").asLong());
     var updated = data(send(put("/post/" + id), input, alice));
     assertThat(updated.path("version").asLong()).isGreaterThan(post.path("version").asLong());
+    assertThat(updated.path("status").asText()).isEqualTo("PENDING");
+    mvc.perform(get("/post/" + id)).andExpect(status().isNotFound());
+    approve(updated);
     send(put("/post/" + id), input, alice).andExpect(status().isConflict());
     mvc.perform(get("/post/list?tag=java"))
         .andExpect(status().isOk())
@@ -216,7 +230,8 @@ class CommunityApiIntegrationTest {
     send(delete("/post/" + id), null, bob).andExpect(status().isForbidden());
     send(delete("/post/" + id), null, null).andExpect(status().isUnauthorized());
     send(post("/post/add"), postInput("anonymous"), null).andExpect(status().isUnauthorized());
-    mvc.perform(get("/post/" + id)).andExpect(jsonPath("$.data.title").value("Alice's post"));
+    mvc.perform(get("/post/" + id)).andExpect(status().isNotFound());
+    send(get("/me/posts/" + id), null, alice).andExpect(jsonPath("$.data.title").value("Alice's post"));
   }
 
   @Test
